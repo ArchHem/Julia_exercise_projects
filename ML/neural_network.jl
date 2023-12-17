@@ -1,3 +1,33 @@
+using MLDatasets
+
+train_x, train_y = MNIST.traindata()
+
+test_x,  test_y  = MNIST.testdata()
+
+function format_data(traindata,trainlabel::Vector{Int64})
+
+    float_data = Float64.(traindata)
+
+    Nx, Ny, N= size(traindata)
+
+    output_train_data = Vector{Vector{Float64}}(undef,N)
+    output_labels = Vector{Vector{Float64}}(undef,N)
+
+    for i in 1:N
+        @views local_matrix = float_data[:,:,i]
+        output_train_data[i] = local_matrix[:]
+        local_hot_vector = zeros((10,))
+        local_hot_vector[trainlabel[i]+1] = 1.0
+        @views output_labels[i] = local_hot_vector
+    end
+    
+    return output_train_data, output_labels
+end
+
+f_train_x, f_train_y = format_data(train_x,train_y)
+
+f_test_x, f_test_y = format_data(test_x,test_y)
+
 function sigmoid(x::Vector{Float64})
     quant =  1.0 ./ (1.0 .+ exp.(.-x))
     return quant
@@ -8,16 +38,41 @@ function sigmoid_der(x::Vector{Float64})
     return quant
 end
 
+function softmax_CE(ypredict::Vector{Float64},
+    ylabel::Vector{Float64})
+
+    exps = exp.(ypredict)
+
+    softmax = exps ./sum(exps)
+
+    @. logloss = - ylabel * log(softmax)
+
+    quant = sum(logloss)
+
+    return quant
+
+end
+
+function softmax_CE_der(ypredict::Vector{Float64},
+    ylabel::Vector{Float64})
+    # Assuming that ylabel is one-hot encoded, i.e. approximates a knoecker delta
+    exps = exp.(ypredict)
+    softmax = exps ./sum(exps)
+    quant = softmax .- ylabel
+    return quant
+
+end
+
 function binary_crossentropy(ypredict::Vector{Float64},
     ylabel::Vector{Float64})
     quant = .- ylabel .* log.(ypredict) - (1.0 .- ylabel) .* log.(1.0 .- ypredict)
-    return quant[1]
+    return sum(quant)
 end
 
 function binary_crossentropy_der(ypredict::Vector{Float64},
     ylabel::Vector{Float64})
     quant = -1.0 .* (ylabel ./ ypredict .- (1.0 .-ylabel)./(1.0 .- ypredict))
-    return quant[1]
+    return sum(quant)
 end
 
 struct NN_network
@@ -107,7 +162,7 @@ function backpropegate(input_vector::Vector{Float64},label::Vector{Float64},NN_i
 end
 
 function batch_update_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vector{Float64}},NN_instance::NN_network,
-    learning_rate::Float64 = 1e-3)
+    learning_rate::Float64 = 1e-2)
     
     N = length(NN_instance.N_neurons)
     N_input_vecs = length(input_vectors)
@@ -127,7 +182,7 @@ function batch_update_network(input_vectors::Vector{Vector{Float64}},labels::Vec
 end
 
 function train_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vector{Float64}},NN_instance::NN_network,
-    learning_rate::Float64 = 1e-3,batch_length::Int64 = 20)
+    learning_rate::Float64 = 1e-2,batch_length::Int64 = 10)
 
     N_input = length(input_vectors)
 
@@ -146,28 +201,37 @@ function train_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vec
     end
 end
 
-neuron_arr = Vector{Int64}([3,5,1])
-funcs = Vector{Function}([sigmoid,sigmoid,sigmoid])
-func_derivs = Vector{Function}([sigmoid_der,sigmoid_der,sigmoid_der])
-test = NN_network(neuron_arr,funcs,func_derivs,binary_crossentropy,binary_crossentropy_der)
+function epoch_train_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vector{Float64}},NN_instance::NN_network,
+    learning_rate::Float64 = 1e-2,batch_length::Int64 = 10, epoch_count::Int64 = 100)
 
-#= 
-Generate data such that the label is the sum of the input vector of length 3.
-=#
+    for i in epoch_count
+        train_network(input_vectors,labels,NN_instance,learning_rate,batch_length)
+    end
 
-N_data = 100000
-test_vectors = Vector{Vector{Float64}}(undef,(N_data,))
-test_labels = Vector{Vector{Float64}}(undef,(N_data,))
-
-for j in 1:N_data
-    test_vectors[j] = rand(Float64,(3,))./3
-    test_labels[j] = Vector([sum(test_vectors[j])])
 end
 
+function validate_model(test_vectors::Vector{Vector{Float64}},test_labels::Vector{Vector{Float64}},NN_instance::NN_network)
+    N = length(test_labels)
 
-tester_vec = Vector([0.1,0.3,0.2])
-tester_label = Vector([0.6])
+    correct_guess::Int64 = 0
+    
+    for i in 1:N
+        local_predict = network_predict(test_vectors[i],NN_instance)
+        correct_answer = test_labels[i]
 
+        if mapslices(argmax,local_predict,dims=1) == mapslices(argmax,correct_answer,dims=1)
+            correct_guess = correct_guess + 1
+        end
+        
+    end
+    return correct_guess, N-correct_guess
+end
 
-train_network(test_vectors,test_labels,test,1e-1,20)
-println(network_predict(tester_vec,test))
+neuron_arr = Vector{Int64}([28^2,40,40,10])
+funcs = Vector{Function}([sigmoid,sigmoid,sigmoid])
+func_derivs = Vector{Function}([sigmoid_der,sigmoid_der,sigmoid_der])
+test = NN_network(neuron_arr,funcs,func_derivs,softmax_CE,softmax_CE_der)
+
+epoch_train_network(f_train_x,f_train_y,test)
+println("Training done")
+println(validate_model(f_test_x,f_test_y,test))
