@@ -38,6 +38,16 @@ function sigmoid_der(x::Vector{Float64})
     return quant
 end
 
+function RELU(x::Vector{Float64})
+    quant = @. (abs(x) + x)/2
+    return quant
+end
+
+function RELU_der(x::Vector{Float64})
+    quant = @. 0.5 * (sign(x) + 1)
+    return quant
+end
+
 function softmax_CE(ypredict::Vector{Float64},
     ylabel::Vector{Float64})
 
@@ -202,7 +212,7 @@ function train_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vec
 end
 
 function epoch_train_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vector{Float64}},NN_instance::NN_network,
-    learning_rate::Float64 = 1e-2,batch_length::Int64 = 10, epoch_count::Int64 = 100)
+    learning_rate::Float64 = 1e-2,batch_length::Int64 = 10, epoch_count::Int64 = 50)
 
     for i in epoch_count
         train_network(input_vectors,labels,NN_instance,learning_rate,batch_length)
@@ -227,11 +237,14 @@ function validate_model(test_vectors::Vector{Vector{Float64}},test_labels::Vecto
     return correct_guess, N-correct_guess
 end
 
-neuron_arr = Vector{Int64}([28^2,40,40,10])
-funcs = Vector{Function}([sigmoid,sigmoid,sigmoid])
-func_derivs = Vector{Function}([sigmoid_der,sigmoid_der,sigmoid_der])
+neuron_arr = Vector{Int64}([28^2,40,40,15,10])
+funcs = Vector{Function}([RELU,RELU,RELU,RELU])
+func_derivs = Vector{Function}([RELU_der,RELU_der,RELU_der,RELU_der])
 test = NN_network(neuron_arr,funcs,func_derivs,softmax_CE,softmax_CE_der)
 
 epoch_train_network(f_train_x,f_train_y,test)
+
 println("Training done")
+
+println(validate_model(f_train_x,f_train_y,test))
 println(validate_model(f_test_x,f_test_y,test))
