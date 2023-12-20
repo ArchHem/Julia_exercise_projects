@@ -237,9 +237,9 @@ function validate_model(test_vectors::Vector{Vector{Float64}},test_labels::Vecto
     return correct_guess, N-correct_guess
 end
 
-neuron_arr = Vector{Int64}([28^2,40,40,15,10])
-funcs = Vector{Function}([RELU,RELU,RELU,RELU])
-func_derivs = Vector{Function}([RELU_der,RELU_der,RELU_der,RELU_der])
+neuron_arr = Vector{Int64}([28^2,40,40,10])
+funcs = Vector{Function}([RELU,RELU,RELU])
+func_derivs = Vector{Function}([RELU_der,RELU_der,RELU_der])
 test = NN_network(neuron_arr,funcs,func_derivs,softmax_CE,softmax_CE_der)
 
 epoch_train_network(f_train_x,f_train_y,test)
