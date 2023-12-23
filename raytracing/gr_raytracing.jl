@@ -1,4 +1,4 @@
-using Symbolics, StaticArrays, Plots, NLsolve
+using Symbolics, StaticArrays, Plots, NLsolve, ProgressBars, LinearAlgebra
 
 @variables x1::Real, x2::Real, x3::Real, x4::Real
 @variables t_i::Real, x_i::Real, y_i::Real, z_i::Real
@@ -175,11 +175,11 @@ function spatial_scale(metric_instance::metric_container,coord_fourpos::SVector{
 end
 
 function normalize_fourveloc_bunch(metric_instance::metric_container,cart_pos::Vector{SVector{4, Float64}},
-    cart_fourveloc::Vector{SVector{4, Float64}}, quant::Float64 = 0.0)
+    cart_fourveloc::Vector{SVector{4, Float64}}, quant::Real = 0.0)
     N = length(cart_pos)
     new_coord_fourveloc_container = Vector{SVector{4, Float64}}(undef,N)
 
-    for i in 1:N
+    Threads.@threads for i in ProgressBar(1:N)
         local_coord_fourpos = metric_instance.from_cartesian_to_coords(cart_pos[i])
         local_coord_fourveloc = metric_instance.inverse_jacobian(local_coord_fourpos) * cart_fourveloc[i]
         function to_solve(x::Vector{Float64})
@@ -238,23 +238,42 @@ function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int6
     for i in 1:N_rays
         initial_coord_pos[i] = SVector{4,Float64}(metric_instance.from_cartesian_to_coords(initial_position_vector[i]) )
     end
-    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initiaL_normal_vectors)
+    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initiaL_normal_vectors,norm_quant)
     return initial_coord_pos, initial_coord_velocs
 
 end
 
 function calculate_fouracc(metric_instance::metric_container,coord_fourpos::Vector{SVector{4, Float64}},
-    coord_fourveloc::Vector{SVector{4, Float64}})
-    Number_of_rays = length(coord_fourveloc)
-    coord_four_acceleration = Vector{SVector{4, Float64}}(undef,Number_of_rays)
-
-    Threads.@threads for n in 1:Number_of_rays
-        
+    coord_fourveloc::Vector{SVector{4, Float64}},coordinate_basis::Int64 = 1)
+    N_rays = length(coord_fourpos)
+    coord_four_acceleration = Vector{SVector{4, Float64}}(undef,N_rays)
+    #hopefully matches einsum-like performance
+    Threads.@threads for n in ProgressBar(1:N_rays)
+        local_acc = zeros(Float64,4)
+        CHR_symbol = metric_instance.numeric_CH_symbol(coord_fourpos[n])
+        local_veloc = coord_fourveloc[n]
+        for u in 1:4
+            local_acc[u] = -local_veloc'CHR_symbol[u,:,:] * local_veloc + (
+                local_veloc'CHR_symbol[coordinate_basis,:,:] * local_veloc * local_veloc[u])
+        end
+        coord_four_acceleration[n] = SVector{4,Float64}(local_acc)
     end 
+    return coord_fourveloc, coord_four_acceleration
+end
+
+function integrate_geodesics_no_track(metric_instance::metric_container,coord_fourpos::Vector{SVector{4, Float64}},
+    coord_fourveloc::Vector{SVector{4, Float64}},coordinate_basis::Int64 = 1,N_timesteps::Int64 = 2000)
+    N_init = length(coord_fourveloc)
+    index_tracker = collect(1:N_init)
 end
 
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 
-fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,50,50,0.01,Vector([0.0,0.0,2.1,0.0]),5,-pi/2,0,0,1)
+fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,2,2,0.001,Vector([0.0,0.0,5.0,0.0]),2,-pi/2,0,0,1)
 
+fourveloc, fouracc = calculate_fouracc(test_container,fourvec0,fourveloc0)
 
+println("test")
+println(fourvec0[1])
+println(fourveloc0[1])
+println(fouracc[1])
