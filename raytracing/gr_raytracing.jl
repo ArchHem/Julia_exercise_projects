@@ -97,6 +97,13 @@ function generate_christoffel_symbol(metric::SMatrix{4,4,Num,16},coordinates::SV
     end
 
     #reflect values on diagonal, using lower index symetry
+    for u in 1:4
+        for j in 1:4
+            for i in 1:4
+                temp_CH_symbols[u][i,j] = simplify(temp_CH_symbols[u][i,j])
+            end
+        end
+    end
 
     for u in 1:4
         for j in 1:4
@@ -105,13 +112,11 @@ function generate_christoffel_symbol(metric::SMatrix{4,4,Num,16},coordinates::SV
             end
         end
     end
-    
-    interm = [simplify(temp_CH_symbols[i]) for i in 1:4]
 
     prelim_interm = Array{Num}(undef,(4,4,4))
 
     for i in 1:4
-        prelim_interm[i,:,:] = interm[i]
+        prelim_interm[i,:,:] = temp_CH_symbols[i]
     end
     
     simplified_CH_symbols = SArray{Tuple{4,4,4}, Num, 3, 4^3}(prelim_interm)
@@ -190,6 +195,7 @@ function normalize_fourveloc_bunch(metric_instance::metric_container,cart_pos::V
         
         sol = nlsolve(to_solve,[metric_instance.speed_of_light])
         rescaler = sol.zero
+
         new_coord_fourveloc = spatial_scale(metric_instance,local_coord_fourpos,local_coord_fourveloc,rescaler[1])
         new_coord_fourveloc_container[i] = new_coord_fourveloc
     end
@@ -197,9 +203,21 @@ function normalize_fourveloc_bunch(metric_instance::metric_container,cart_pos::V
     return new_coord_fourveloc_container
 end
 
+function STATIC_nan_to_zero(tensor::SArray{Tuple{4,4,4}, Float64, 3, 4^3})
+    #used to ensure CH symbol physicallity
+    new_tensor = Array{Float64}(undef,(4,4,4))
+    new_tensor .= tensor
+    for i in eachindex(new_tensor)
+        if isnan(new_tensor[i])
+            new_tensor[i] = 0.0
+        end
+    end
+    output = SArray{Tuple{4,4,4}, Float64, 3, 4^3}(new_tensor)
+    return output
+end
+
 function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int64,N_y::Int64,d_pixel::Float64,
-    camera_location::Vector{Float64},focal_distance::Real,x_angle::Real,y_angle::Real,z_angle::Real,
-    norm_quant::Real)
+    camera_location::Vector{Float64},focal_distance::Real,x_angle::Real,y_angle::Real,z_angle::Real)
     
     N_rays = N_x * N_y
 
@@ -214,8 +232,8 @@ function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int6
     x_vec = vcat(x_mat)
     y_vec = vcat(y_mat)
 
-    initiaL_normal_vectors = [Vector{Float64}([x_vec[i],y_vec[i],focal_distance]) for i in 1:N_rays]
-    initiaL_normal_vectors = [Vector{Float64}(initiaL_normal_vectors[i])./sqrt(sum(initiaL_normal_vectors[i].^2)) for i in 1:N_rays]
+    initial_normal_vectors = [Vector{Float64}([-x_vec[i],-y_vec[i],-focal_distance]) for i in 1:N_rays]
+    initial_normal_vectors = [Vector{Float64}(initial_normal_vectors[i])./sqrt(sum(initial_normal_vectors[i].^2)) for i in 1:N_rays]
 
     initial_position_vector = [Vector{Float64}([x_vec[i],y_vec[i],0.0]) for i in 1:N_rays]
 
@@ -225,20 +243,21 @@ function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int6
 
     all_rot = z_rotation_matrix * y_rotation_matrix * x_rotation_matrix
 
-    initiaL_normal_vectors = [all_rot * initiaL_normal_vectors[i] for i in 1:N_rays]
+    initial_normal_vectors = [all_rot * initial_normal_vectors[i] for i in 1:N_rays]
     
     initial_position_vector = [all_rot * initial_position_vector[i] for i in 1:N_rays]
     
-    initial_position_vector = [vcat([0.0],initial_position_vector[i]) for i in 1:N_rays]
-    initiaL_normal_vectors = [SVector{4, Float64}(vcat([1.0],metric_instance.speed_of_light * initiaL_normal_vectors[i])) for i in 1:N_rays]
+    initial_position_vector = [vcat([camera_location[1]],initial_position_vector[i]) for i in 1:N_rays]
+    initial_normal_vectors = [SVector{4, Float64}(vcat([1.0],metric_instance.speed_of_light * initial_normal_vectors[i])) for i in 1:N_rays]
     
     initial_position_vector = [SVector{4, Float64}(initial_position_vector[i] + camera_location) for i in 1:N_rays]
 
     initial_coord_pos = Vector{SVector{4, Float64}}(undef,N_rays)
+    
     for i in 1:N_rays
         initial_coord_pos[i] = SVector{4,Float64}(metric_instance.from_cartesian_to_coords(initial_position_vector[i]) )
     end
-    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initiaL_normal_vectors,norm_quant)
+    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,0.0)
     return initial_coord_pos, initial_coord_velocs
 
 end
@@ -248,32 +267,116 @@ function calculate_fouracc(metric_instance::metric_container,coord_fourpos::Vect
     N_rays = length(coord_fourpos)
     coord_four_acceleration = Vector{SVector{4, Float64}}(undef,N_rays)
     #hopefully matches einsum-like performance
-    Threads.@threads for n in ProgressBar(1:N_rays)
+    Threads.@threads for n in 1:N_rays
         local_acc = zeros(Float64,4)
-        CHR_symbol = metric_instance.numeric_CH_symbol(coord_fourpos[n])
+        CHR_symbol_init = metric_instance.numeric_CH_symbol(coord_fourpos[n])
+        CHR_symbol = STATIC_nan_to_zero(CHR_symbol_init)
         local_veloc = coord_fourveloc[n]
         for u in 1:4
-            local_acc[u] = -local_veloc'CHR_symbol[u,:,:] * local_veloc + (
-                local_veloc'CHR_symbol[coordinate_basis,:,:] * local_veloc * local_veloc[u])
+            local_acc[u] = -(local_veloc'CHR_symbol[u,:,:] * local_veloc) + (local_veloc'CHR_symbol[coordinate_basis,:,:] * local_veloc * local_veloc[u])
         end
         coord_four_acceleration[n] = SVector{4,Float64}(local_acc)
     end 
     return coord_fourveloc, coord_four_acceleration
 end
 
-function integrate_geodesics_no_track(metric_instance::metric_container,coord_fourpos::Vector{SVector{4, Float64}},
-    coord_fourveloc::Vector{SVector{4, Float64}},coordinate_basis::Int64 = 1,N_timesteps::Int64 = 2000)
+function SCH_termination_cause(coord_fourpos::Vector{SVector{4, Float64}}, coord_fourveloc::Vector{SVector{4, Float64}},
+    current_indices::Vector{Int64})
+    N_current = length(current_indices)
+    global_indices_to_del = Vector{Int64}()
+    local_indices_to_del = Vector{Int64}()
+    
+    for i in 1:N_current
+        if coord_fourpos[i][2] < 2.05 || coord_fourpos[i][2] > 20.0
+            push!(global_indices_to_del,current_indices[i])
+            push!(local_indices_to_del,i)
+        end
+    end
+    return global_indices_to_del, local_indices_to_del
+
+end
+
+function SCH_d0_scaler(coord_fourpos::Vector{SVector{4, Float64}}, coord_fourveloc::Vector{SVector{4, Float64}},
+    d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 14.0)
+
+    N_current = length(coord_fourpos)
+
+    d0 = ones(N_current) * d0_outer
+
+    for i in 1:N_current
+        if coord_fourpos[i][2] < zone_separator
+            d0[i] = d0_inner
+        end
+    end
+
+    return d0
+end
+
+
+function integrate_geodesics_no_tracking_RK4(metric_instance::metric_container,coord_fourpos::Vector{SVector{4, Float64}},
+    coord_fourveloc::Vector{SVector{4, Float64}},termination::Function,d0_scaler::Function,
+    coordinate_basis::Int64 = 1,N_timesteps::Int64 = 2000)
+
     N_init = length(coord_fourveloc)
-    index_tracker = collect(1:N_init)
+    index_tracker = Vector{Int64}(collect(1:N_init))
+    initial_fourpos = copy(coord_fourpos)
+    initial_fourveloc = copy(coord_fourveloc)
+
+    final_fourpos = Vector{SVector{4, Float64}}(undef, N_init)
+    final_fourvelocity = Vector{SVector{4, Float64}}(undef, N_init)
+
+    #can be used to render eg accreration disk
+    #auxillary_color_data = Vector{Vector{Float64}}([zeros(3) for i in 1:N_init])
+
+    for t in ProgressBar(1:N_timesteps)
+        
+        if length(index_tracker) == 0
+            println("All terms terminated at timestep " * string(t))
+            break
+        end
+
+        local_d0 = d0_scaler(coord_fourpos,coord_fourveloc)
+
+        d1_fourpos, d1_fourveloc = calculate_fouracc(metric_instance,coord_fourpos,coord_fourveloc,coordinate_basis)
+        
+        d2_fourpos, d2_fourveloc = calculate_fouracc(metric_instance,
+        coord_fourpos .+ 0.5 .* local_d0 .* d1_fourpos, coord_fourveloc .+ 0.5 .* local_d0 .* d1_fourveloc, coordinate_basis)
+
+        d3_fourpos, d3_fourveloc = calculate_fouracc(metric_instance,
+        coord_fourpos .+ 0.5 .* local_d0 .* d2_fourpos, coord_fourveloc .+ 0.5 .* local_d0 .* d2_fourveloc, coordinate_basis)
+
+        d4_fourpos, d4_fourveloc = calculate_fouracc(metric_instance,
+        coord_fourpos .+  local_d0 .* d3_fourpos, coord_fourveloc .+ local_d0 .* d3_fourveloc, coordinate_basis)
+
+        coord_fourpos = coord_fourpos + @. local_d0/6 * (d1_fourpos + 2 * d2_fourpos + 2 * d3_fourpos + d4_fourpos)
+        coord_fourveloc = coord_fourveloc + @. local_d0/6 * (d1_fourveloc + 2 * d2_fourveloc + 2 * d3_fourveloc + d4_fourveloc)
+
+        global_del, local_del = termination(coord_fourpos,coord_fourveloc,index_tracker)
+        
+        if length(global_del) > 0
+            
+            final_fourpos[global_del] = coord_fourpos[local_del]
+            final_fourvelocity[global_del] = coord_fourveloc[local_del]
+            index_tracker = deleteat!(index_tracker,local_del)
+            coord_fourpos = deleteat!(coord_fourpos,local_del)
+            coord_fourveloc = deleteat!(coord_fourveloc,local_del)
+        end 
+
+    end
+
+    final_fourpos[index_tracker] = coord_fourpos[index_tracker]
+    final_fourvelocity[index_tracker] = coord_fourveloc[index_tracker]
+
+    println(string(length(index_tracker)) * " rays remain underminated.")
+
+    return initial_fourpos, initial_fourveloc, final_fourpos, final_fourvelocity
 end
 
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 
-fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,2,2,0.001,Vector([0.0,0.0,5.0,0.0]),2,-pi/2,0,0,1)
+fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,100,100,0.01,Vector([0.0,0.0,0.0,-5.0]),1.0,0.0,0.0,0.0)
 
-fourveloc, fouracc = calculate_fouracc(test_container,fourvec0,fourveloc0)
+test1, test2 = calculate_fouracc(test_container,fourvec0,fourveloc0)
 
+integrate_geodesics_no_tracking_RK4(test_container,fourvec0,fourveloc0,SCH_termination_cause,SCH_d0_scaler)
 println("test")
-println(fourvec0[1])
-println(fourveloc0[1])
-println(fouracc[1])
