@@ -1,4 +1,4 @@
-using Symbolics, StaticArrays, Plots, NLsolve, ProgressBars, LinearAlgebra
+using Symbolics, StaticArrays, Plots, NLsolve, ProgressBars, LinearAlgebra, Colors, Images
 
 @variables x1::Real, x2::Real, x3::Real, x4::Real
 @variables t_i::Real, x_i::Real, y_i::Real, z_i::Real
@@ -35,6 +35,72 @@ cartesian_coords = SVector(t,x,y,z)
 
 inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
 inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
+
+function metric_to_minkowskian_basis(metric::SMatrix{4,4,Num,16},coordinates::SVector{4,Num},cartesian_coordinates::SVector{4,Num},
+    inverse_coordinates::SVector{4,Num},inverse_cartesian_coordinates::SVector{4,Num})
+    #will result in insance CHR calculation times.
+
+    jacobian_coords = Symbolics.jacobian(cartesian_coordinates,coordinates)
+
+    println(jacobian_coords)
+
+    local_dict = Dict([coordinates[i] => inverse_coordinates[i] for i in 1:4])
+
+    jacobian_cartesian = Matrix{Num}(undef,(4,4))
+
+    metric_cart_sub = Matrix{Num}(undef,(4,4))
+
+    for j in 1:4
+        for i in 1:4
+            jacobian_cartesian[i,j] = substitute(jacobian_coords[i,j],local_dict)
+            jacobian_cartesian[i,j] = simplify(jacobian_cartesian[i,j])
+            metric_cart_sub[i,j] = substitute(metric[i,j],local_dict)
+            metric_cart_sub[i,j] = simplify(metric_cart_sub[i,j])
+        end
+    end
+
+    metric_cart_sub = SMatrix{4,4,Num,16}(metric_cart_sub)
+
+    final_cartesian_metric = zeros(Num,(4,4))
+
+    for j in 1:4
+        for i in 1:4
+            for u in 1:4
+                for v in 1:4
+                    final_cartesian_metric[u,v] = final_cartesian_metric[u,v] + jacobian_cartesian[i,u] * jacobian_cartesian[j,v] * metric_cart_sub[i,j]
+                end
+            end
+        end
+    end
+
+    for i in 1:4
+        for j in 1:4
+            final_cartesian_metric[i,j] = simplify(final_cartesian_metric[i,j])
+        end
+    end
+    println(final_cartesian_metric)
+    #construct new set of coordinates
+    final_cartesian_metric = SMatrix{4,4,Num,16}(final_cartesian_metric)
+    #eqv. to 'usual' cartesian coordinates
+
+    x1 = inverse_cartesian_coordinates[1]
+    x2 = inverse_cartesian_coordinates[2]
+    x3 = inverse_cartesian_coordinates[3]
+    x4 = inverse_cartesian_coordinates[4]
+
+    local_coords = inverse_cartesian_coordinates
+    local_cart_coords = @SVector [x1, x2, x3, x4]
+
+    #eqv to usual inverse cartesian
+    @variables t_ii::Real, x_ii::Real, y_ii::Real, z_ii::Real
+
+    local_inv_cartesian = @SVector [t_ii, x_ii, y_ii, z_ii]
+
+    local_inv_coords = @SVector [t_ii, x_ii, y_ii, z_ii]
+
+    return final_cartesian_metric, local_coords, local_cart_coords, local_inv_coords, local_inv_cartesian
+
+end
 
 #create a callable metric function using Symbolics.jl package; output can be mutative or allocating type
 function numeric_matrix_generator(matrix::StaticArray,coordinates::SVector{4,Num})
@@ -217,7 +283,7 @@ function STATIC_nan_to_zero(tensor::SArray{Tuple{4,4,4}, Float64, 3, 4^3})
 end
 
 function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int64,N_y::Int64,d_pixel::Float64,
-    camera_location::Vector{Float64},focal_distance::Real,x_angle::Real,y_angle::Real,z_angle::Real)
+    camera_location::Vector{Float64},focal_distance::Real,x_angle::Real,y_angle::Real,z_angle::Real,norm_quant::Float64 = 0.0)
     
     N_rays = N_x * N_y
 
@@ -257,7 +323,7 @@ function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int6
     for i in 1:N_rays
         initial_coord_pos[i] = SVector{4,Float64}(metric_instance.from_cartesian_to_coords(initial_position_vector[i]) )
     end
-    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,0.0)
+    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,norm_quant)
     return initial_coord_pos, initial_coord_velocs
 
 end
@@ -287,7 +353,7 @@ function SCH_termination_cause(coord_fourpos::Vector{SVector{4, Float64}}, coord
     local_indices_to_del = Vector{Int64}()
     
     for i in 1:N_current
-        if coord_fourpos[i][2] < 2.05 || coord_fourpos[i][2] > 20.0
+        if coord_fourpos[i][2] < 2.025 || coord_fourpos[i][2] > 50.0
             push!(global_indices_to_del,current_indices[i])
             push!(local_indices_to_del,i)
         end
@@ -297,7 +363,7 @@ function SCH_termination_cause(coord_fourpos::Vector{SVector{4, Float64}}, coord
 end
 
 function SCH_d0_scaler(coord_fourpos::Vector{SVector{4, Float64}}, coord_fourveloc::Vector{SVector{4, Float64}},
-    d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 14.0)
+    d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 10.0)
 
     N_current = length(coord_fourpos)
 
@@ -364,19 +430,81 @@ function integrate_geodesics_no_tracking_RK4(metric_instance::metric_container,c
 
     end
 
-    final_fourpos[index_tracker] = coord_fourpos[index_tracker]
-    final_fourvelocity[index_tracker] = coord_fourveloc[index_tracker]
+    final_fourpos[index_tracker] = coord_fourpos
+    final_fourvelocity[index_tracker] = coord_fourveloc
 
     println(string(length(index_tracker)) * " rays remain underminated.")
 
     return initial_fourpos, initial_fourveloc, final_fourpos, final_fourvelocity
 end
 
+function SCH_colorer(final_fourvectors::Vector{SVector{4, Float64}},final_fourvelocs::Vector{SVector{4, Float64}},image::Matrix{RGBA{N0f8}})
+    for i in eachindex(image)
+        if final_fourvectors[i][2] < 2.025
+            
+            image[i] = RGBA{N0f8}(0.0,0.0,0.0,1.0)
+        end
+    end
+    return image
+end
+
+function standard_CS_renderer(image_path::String, metric_instance::metric_container,coord_fourpos::Vector{SVector{4, Float64}},
+    coord_fourveloc::Vector{SVector{4, Float64}},termination::Function,d0_scaler::Function, N_x_cam::Int64, N_y_cam::Int64,custom_colorer::Function,
+    coordinate_basis::Int64 = 1,N_timesteps::Int64 = 2000)
+
+    celestial_sphere = load(image_path)
+
+    Ny, Nx = size(celestial_sphere)
+
+    output_image = Matrix{eltype(celestial_sphere)}(undef,(N_y_cam,N_x_cam))
+
+    starting_fourpos, starting_fourveloc, final_fourpos, final_fourveloc = integrate_geodesics_no_tracking_RK4(metric_instance,
+    coord_fourpos,coord_fourveloc,termination,d0_scaler,coordinate_basis,N_timesteps)
+
+    N_rays = length(final_fourveloc)
+    minkowsi_coords = Vector{SVector{4, Float64}}(undef,N_rays)
+    minkowsi_velocity = Vector{SVector{4, Float64}}(undef,N_rays)
+
+
+    for i in 1:N_rays
+        minkowsi_coords[i] = metric_instance.from_coords_to_cartesian(final_fourpos[i])
+        minkowsi_velocity[i] = metric_instance.jacobian(final_fourpos[i]) * final_fourveloc[i]
+    end
+
+
+    #map minkowskian velocity into celestial sphere
+
+    quasi_r = [sqrt(minkowsi_velocity[i][4]^2 + minkowsi_velocity[i][3]^2 + minkowsi_velocity[i][2]^2) for i in 1:N_rays]
+
+    quasi_theta = [acos(minkowsi_velocity[i][4]/quasi_r[i]) for i in 1:N_rays]
+    quasi_phi = [atan(minkowsi_velocity[i][3],minkowsi_velocity[i][2]) for i in 1:N_rays]
+    quasi_phi = @. (quasi_phi + 2pi) % (2pi)
+
+    quasi_theta = reshape(quasi_theta, (N_y_cam,N_x_cam))
+    quasi_phi = reshape(quasi_phi, (N_y_cam,N_x_cam))
+
+    for j in 1:N_x_cam
+        for i in 1:N_y_cam
+            output_image[i,j] = celestial_sphere[round(Int64,quasi_theta[i,j]*Ny%(pi)), round(Int64,quasi_phi[i,j]*Nx%(2pi))]
+        end
+    end
+    #
+    
+    output_image = custom_colorer(final_fourpos,final_fourveloc,output_image)
+
+    return output_image
+
+end
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 
-fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,100,100,0.01,Vector([0.0,0.0,0.0,-5.0]),1.0,0.0,0.0,0.0)
+Nx = 200
+Ny = 100
+fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,Nx,Ny,0.05,Vector([0.0,0.0,0.0,-5.0]),1.0,0.0,0.0,0.0)
 
 test1, test2 = calculate_fouracc(test_container,fourvec0,fourveloc0)
 
-integrate_geodesics_no_tracking_RK4(test_container,fourvec0,fourveloc0,SCH_termination_cause,SCH_d0_scaler)
+
+output_image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,fourvec0,fourveloc0,SCH_termination_cause,SCH_d0_scaler,
+Nx,Ny,SCH_colorer,1,4000)
+save("raytracing/renders/test_02.png",output_image)
 println("test")
