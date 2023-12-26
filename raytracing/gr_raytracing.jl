@@ -237,16 +237,18 @@ function metric_inner_product(metric_instance::metric_container,coord_fourpos::S
 end
 
 function spatial_scale(metric_instance::metric_container,coord_fourpos::SVector{4, Float64},coord_fourveloc::SVector{4, Float64},
-    alpha::Float64)::SVector{4,Float64}
+    alpha::Float64,coordinate_basis::Int64 = 1)::SVector{4,Float64}
     cartesian_fourveloc = metric_instance.jacobian(coord_fourpos) * coord_fourveloc
-    scaler_vector = SVector{4, Float64}([1.0, alpha, alpha, alpha])
+    scaler_vector = Vector{Float64}([alpha, alpha, alpha, alpha])
+    scaler_vector[coordinate_basis] = 1.0
+    scaler_vector = SVector{4, Float64}(scaler_vector)
     new_cart_fourveloc = scaler_vector .* cartesian_fourveloc
     new_coord_fourveloc = SVector{4,Float64}(metric_instance.inverse_jacobian(coord_fourpos) * new_cart_fourveloc)
     return new_coord_fourveloc
 end
 
 function normalize_fourveloc_bunch(metric_instance::metric_container,cart_pos::Vector{SVector{4, Float64}},
-    cart_fourveloc::Vector{SVector{4, Float64}}, quant::Real = 0.0)
+    cart_fourveloc::Vector{SVector{4, Float64}}, quant::Real = 0.0,coord_basis::Int64 = 1)
     N = length(cart_pos)
     new_coord_fourveloc_container = Vector{SVector{4, Float64}}(undef,N)
 
@@ -255,7 +257,7 @@ function normalize_fourveloc_bunch(metric_instance::metric_container,cart_pos::V
         local_coord_fourveloc = metric_instance.inverse_jacobian(local_coord_fourpos) * cart_fourveloc[i]
         function to_solve(x::Vector{Float64})
             val = metric_inner_product(metric_instance,local_coord_fourpos,
-            spatial_scale(metric_instance,local_coord_fourpos,local_coord_fourveloc,x[1])) - quant
+            spatial_scale(metric_instance,local_coord_fourpos,local_coord_fourveloc,x[1],coord_basis)) - quant
             return val
         end
         
@@ -283,7 +285,8 @@ function STATIC_nan_to_zero(tensor::SArray{Tuple{4,4,4}, Float64, 3, 4^3})
 end
 
 function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int64,N_y::Int64,d_pixel::Float64,
-    camera_location::Vector{Float64},focal_distance::Real,x_angle::Real,y_angle::Real,z_angle::Real,norm_quant::Float64 = 0.0)
+    camera_location::Vector{Float64},focal_distance::Real,x_angle::Real,y_angle::Real,z_angle::Real,norm_quant::Float64 = 0.0,
+    coordinate_basis::Int64 = 1)
     
     N_rays = N_x * N_y
 
@@ -323,7 +326,7 @@ function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int6
     for i in 1:N_rays
         initial_coord_pos[i] = SVector{4,Float64}(metric_instance.from_cartesian_to_coords(initial_position_vector[i]) )
     end
-    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,norm_quant)
+    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,norm_quant,coordinate_basis)
     return initial_coord_pos, initial_coord_velocs
 
 end
@@ -353,7 +356,7 @@ function SCH_termination_cause(coord_fourpos::Vector{SVector{4, Float64}}, coord
     local_indices_to_del = Vector{Int64}()
     
     for i in 1:N_current
-        if coord_fourpos[i][2] < 2.025 || coord_fourpos[i][2] > 50.0
+        if coord_fourpos[i][2] < 2.025 || coord_fourpos[i][2] > 30.0
             push!(global_indices_to_del,current_indices[i])
             push!(local_indices_to_del,i)
         end
@@ -363,7 +366,7 @@ function SCH_termination_cause(coord_fourpos::Vector{SVector{4, Float64}}, coord
 end
 
 function SCH_d0_scaler(coord_fourpos::Vector{SVector{4, Float64}}, coord_fourveloc::Vector{SVector{4, Float64}},
-    d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 10.0)
+    d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 15.0)
 
     N_current = length(coord_fourpos)
 
@@ -414,8 +417,8 @@ function integrate_geodesics_no_tracking_RK4(metric_instance::metric_container,c
         d4_fourpos, d4_fourveloc = calculate_fouracc(metric_instance,
         coord_fourpos .+  local_d0 .* d3_fourpos, coord_fourveloc .+ local_d0 .* d3_fourveloc, coordinate_basis)
 
-        coord_fourpos = coord_fourpos + @. local_d0/6 * (d1_fourpos + 2 * d2_fourpos + 2 * d3_fourpos + d4_fourpos)
-        coord_fourveloc = coord_fourveloc + @. local_d0/6 * (d1_fourveloc + 2 * d2_fourveloc + 2 * d3_fourveloc + d4_fourveloc)
+        coord_fourpos = @. coord_fourpos + local_d0/6 * (d1_fourpos + 2 * d2_fourpos + 2 * d3_fourpos + d4_fourpos)
+        coord_fourveloc = @. coord_fourveloc + local_d0/6 * (d1_fourveloc + 2 * d2_fourveloc + 2 * d3_fourveloc + d4_fourveloc)
 
         global_del, local_del = termination(coord_fourpos,coord_fourveloc,index_tracker)
         
@@ -485,10 +488,13 @@ function standard_CS_renderer(image_path::String, metric_instance::metric_contai
 
     for j in 1:N_x_cam
         for i in 1:N_y_cam
-            output_image[i,j] = celestial_sphere[round(Int64,quasi_theta[i,j]*Ny%(pi)), round(Int64,quasi_phi[i,j]*Nx%(2pi))]
+            y_index = ceil(Int64,quasi_theta[i,j]*Ny/(pi) ) 
+            x_index = ceil(Int64,quasi_phi[i,j]*Nx/(2pi) ) 
+            
+            output_image[i,j] = celestial_sphere[y_index, x_index]
         end
     end
-    #
+    
     
     output_image = custom_colorer(final_fourpos,final_fourveloc,output_image)
 
@@ -497,14 +503,14 @@ function standard_CS_renderer(image_path::String, metric_instance::metric_contai
 end
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 
-Nx = 200
+Nx = 100
 Ny = 100
-fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,Nx,Ny,0.05,Vector([0.0,0.0,0.0,-5.0]),1.0,0.0,0.0,0.0)
+fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,Nx,Ny,0.075,Vector([0.0,0.0,5.0,0.0]),1.0,+pi/2,0.0,0.0)
 
 test1, test2 = calculate_fouracc(test_container,fourvec0,fourveloc0)
 
 
 output_image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,fourvec0,fourveloc0,SCH_termination_cause,SCH_d0_scaler,
 Nx,Ny,SCH_colorer,1,4000)
-save("raytracing/renders/test_02.png",output_image)
+save("raytracing/renders/test_04.png",output_image)
 println("test")
