@@ -37,10 +37,10 @@ inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
 inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
 
 #create a callable metric function using Symbolics.jl package; output can be mutative or allocating type
-function numeric_matrix_generator(matrix::StaticArray,coordinates::SVector)
+function numeric_matrix_generator(matrix::StaticArray,coordinates::StaticArray)
     new_functions = build_function(matrix, coordinates)
-    allocating_matrix = eval(new_functions[1])
-    mutating_matrix= eval(new_functions[2])
+    allocating_matrix = @inline eval(new_functions[1])
+    mutating_matrix= @inline eval(new_functions[2])
     return allocating_matrix, mutating_matrix
 end
 
@@ -246,9 +246,10 @@ function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int6
         initial_coord_pos[i] = SVector{4,Float64}(metric_instance.from_cartesian_to_coords(initial_position_vector[i]) )
     end
     initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,norm_quant,coordinate_basis)
-    allvectors = Vector{SVector{8,Float64}}(undef,(N_rays,))
+    allvectors = Vector{MVector{8,Float64}}(undef,(N_rays,))
     for i in 1:N_rays
-        allvectors[i] = @SVector [initial_coord_pos[i],initial_coord_velocs[i]]
+        lvec = vcat(initial_coord_pos[i],initial_coord_velocs[i])
+        allvectors[i] = lvec
     end
     return allvectors
 
@@ -276,6 +277,7 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
             for i in 1:4
                 acceleration[4+i] = - simplify(coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc)
             end
+            s_acceleration = SVector{8,Num}(acceleration)
         else
             #forces integrator parameter to be x0
             coords = metric_binder.coordinates
@@ -286,11 +288,14 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
             for i in 1:4
                 acceleration[4+i] = - simplify(coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc - (coord_veloc'metric_binder.CH_symbols[1,:,:]*coord_veloc)*coord_veloc[1])
             end
+            s_acceleration = SVector{8,Num}(acceleration)
 
         end
-        s_acceleration = SVector{8,Num}(acceleration)
+        
+        
 
         effective_acceleration = numeric_matrix_generator(s_acceleration, allvector)[1]
+        
 
         new{typeof(effective_acceleration),typeof(ray_terminator),typeof(affine_parameter_scaler)}(metric_binder, effective_acceleration,
         ray_terminator, affine_parameter_scaler,is_affine)
@@ -298,22 +303,71 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
 
 end
 
-function integrate_geodesics(integrator::integrator_struct,number_of_steps::Int64 = 2000)
+function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVector{8,Float64}},number_of_steps::Int64 = 2000)
 
-    function multi_acc(allvectors::Vector{SVector{8,Float64}})
+    function multi_acc(allvectors::Vector{MVector{8,Float64}})
         N_rays = length(allvectors)
-        outp = Vector{SVector{8,Float64}}(undef,N_rays)
-        Threads.@threads for i in N_rays
-            outp[i] = integrator.fouracc_calculator(allvectors[i])
-
+        outp = Vector{MVector{8,Float64}}(undef,(N_rays,))
+        Threads.@threads for i in 1:N_rays
+            temp = integrator.fouracc_calculator(allvectors[i])
+            for j in 1:4
+                @inbounds temp[j] = ifelse((isnan(temp[j]) | isinf(temp[j])), 0.0, temp[j])
+            end
+            outp[i] = temp
         end
+        
         return outp
     end
 
+    N_init = length(allvector)
+    index_tracker = Vector{Int64}(collect(1:N_init))
+
+    initial_allvector = copy(allvector)
+    final_allvector = Vector{MVector{8,Float64}}(undef,N_init)
+
+    #can be used to render eg accreration disk
+    #auxillary_color_data = Vector{Vector{Float64}}([zeros(3) for i in 1:N_init])
+    #TODO? add tracker for the affine parameter itself. (not really needed...)
+
+    for t in ProgressBar(1:number_of_steps)
+        
+        if length(index_tracker) == 0
+            println("All terms terminated at timestep " * string(t))
+            break
+        end
+
+        d0 = integrator.integrator_parameter_scaler(allvector)
+
+        d1_allvec = multi_acc(allvector)
+
+        d2_allvec = multi_acc(allvector .+ 0.5 .* d0 .* d1_allvec)
+
+        d3_allvec = multi_acc(allvector .+ 0.5 .* d0 .* d2_allvec)
+
+        d4_allvec = multi_acc(allvector .+ d0 .* d3_allvec)
+
+        @. allvector += d0/6 * (d1_allvec + 2 * d2_allvec + 2 * d3_allvec + d4_allvec)
+
+        global_del, local_del = integrator.ray_terminator(allvector, index_tracker)
+        
+        if length(global_del) > 0
+            final_allvector[global_del] = allvector[local_del]
+            index_tracker = deleteat!(index_tracker,local_del)
+            allvector = deleteat!(allvector,local_del)
+            
+        end 
+
+    end
+
+    final_allvector[index_tracker] = allvector
     
+
+    println(string(length(index_tracker)) * " rays remain underminated.")
+
+    return initial_allvector, final_allvector
 end
 
-function SCH_termination_cause(coord_allvector::Vector{SVector{8, Float64}},
+function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
     current_indices::Vector{Int64})
     N_current = length(coord_allvector)
     global_indices_to_del = Vector{Int64}()
@@ -329,7 +383,7 @@ function SCH_termination_cause(coord_allvector::Vector{SVector{8, Float64}},
 
 end
 
-function SCH_d0_scaler(coord_allvector::Vector{SVector{8, Float64}},
+function SCH_d0_scaler(coord_allvector::Vector{MVector{8, Float64}},
     d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 15.0)
 
     N_current = length(coord_allvector)
@@ -348,4 +402,8 @@ end
 
 
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
-test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,false)
+test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,true)
+
+init_allvectors = planar_camera_ray_generator(test_container,2,2,0.01,[0.0,0.0,5.0,0.0],5.0,0.0,-pi/2,0.0)
+initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
+
