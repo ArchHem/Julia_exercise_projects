@@ -399,6 +399,10 @@ function SCH_d0_scaler(coord_allvector::Vector{MVector{8, Float64}},
     return d0
 end
 
+function standard_CS_render()
+
+end
+
 
 
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
