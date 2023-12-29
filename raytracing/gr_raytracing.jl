@@ -374,7 +374,7 @@ function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
     local_indices_to_del = Vector{Int64}()
     
     for i in 1:N_current
-        if coord_allvector[i][2] < 2.0 * 1.025 || coord_allvector[i][2] > 30.0
+        if coord_allvector[i][2] < 2.0 * 1.025 || coord_allvector[i][2] > 20.0
             push!(global_indices_to_del,current_indices[i])
             push!(local_indices_to_del,i)
         end
@@ -384,7 +384,7 @@ function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
 end
 
 function SCH_d0_scaler(coord_allvector::Vector{MVector{8, Float64}},
-    d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 15.0)
+    d0_inner::Float64 = -0.025,d0_outer::Float64 = -0.05,zone_separator::Float64 = 10.0)
 
     N_current = length(coord_allvector)
 
@@ -468,9 +468,9 @@ end
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,true)
 
-N_x, N_y = 100, 100
+N_x, N_y = 500, 500
 
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.05,[0.0,0.0,0.0,-5.0],1.0,0.0,0.0,0.0)
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,0.0,-5.0],1.0,0.0,0.0,0.0)
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
 image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
 println("N/A")
