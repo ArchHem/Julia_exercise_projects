@@ -311,7 +311,7 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
         Threads.@threads for i in 1:N_rays
             temp = integrator.fouracc_calculator(allvectors[i])
             for j in 1:4
-                @inbounds temp[j] = ifelse((isnan(temp[j]) | isinf(temp[j])), 0.0, temp[j])
+                @inbounds temp[j] = ifelse((isfinite(temp[j])), temp[j], 0.0)
             end
             outp[i] = temp
         end
@@ -468,10 +468,11 @@ end
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,true)
 
-N_x, N_y = 500, 500
+N_x, N_y = 200, 200
 
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,0.0,-5.0],1.0,0.0,0.0,0.0)
+
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.05/2,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
 image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
 println("N/A")
-save("raytracing/renders/HP_test_00.png",image)
+save("raytracing/renders/HP_test_01.png",image)
