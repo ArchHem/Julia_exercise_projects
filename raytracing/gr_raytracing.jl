@@ -399,8 +399,58 @@ function SCH_d0_scaler(coord_allvector::Vector{MVector{8, Float64}},
     return d0
 end
 
-function standard_CS_render()
+function standard_CS_renderer(image_path::String, metric_instance::metric_container,allvector::Vector{MVector{8,Float64}},N_x_cam::Int64, N_y_cam::Int64,
+    custom_colorer::Function
+    )
+
+    celestial_sphere = load(image_path)
+
+    Ny, Nx = size(celestial_sphere)
+
+    output_image = Matrix{eltype(celestial_sphere)}(undef,(N_y_cam,N_x_cam))
+
+    N_rays = length(allvector)
+
+    final_fourpos, final_fourveloc = Vector{MVector{8,Float64}}(undef,N_rays), Vector{MVector{8,Float64}}(undef,N_rays)
+
+    for i in 1:N_rays
+        final_fourpos[i] = allvector[i][1:4]
+        final_fourveloc[i] = allvector[i][5:8]
+    end
+
+    minkowsi_coords = Vector{SVector{4, Float64}}(undef,N_rays)
+    minkowsi_velocity = Vector{SVector{4, Float64}}(undef,N_rays)
+
+
+    for i in 1:N_rays
+        minkowsi_coords[i] = metric_instance.from_coords_to_cartesian(final_fourpos[i])
+        minkowsi_velocity[i] = metric_instance.jacobian(final_fourpos[i]) * final_fourveloc[i]
+    end
+
+
+    #map minkowskian velocity into celestial sphere
+
+    quasi_r = [sqrt(minkowsi_velocity[i][4]^2 + minkowsi_velocity[i][3]^2 + minkowsi_velocity[i][2]^2) for i in 1:N_rays]
+
+    quasi_theta = [acos(minkowsi_velocity[i][4]/quasi_r[i]) for i in 1:N_rays]
+    quasi_phi = [atan(minkowsi_velocity[i][3],minkowsi_velocity[i][2]) for i in 1:N_rays]
+    quasi_phi = @. (quasi_phi + 2pi) % (2pi)
+
+    quasi_theta = reshape(quasi_theta, (N_y_cam,N_x_cam))
+    quasi_phi = reshape(quasi_phi, (N_y_cam,N_x_cam))
+
+    for j in 1:N_x_cam
+        for i in 1:N_y_cam
+            y_index = ceil(Int64,quasi_theta[i,j]*Ny/(pi) ) 
+            x_index = ceil(Int64,quasi_phi[i,j]*Nx/(2pi) ) 
+            
+            output_image[i,j] = celestial_sphere[y_index, x_index]
+        end
+    end
     
+    output_image = custom_colorer(final_fourpos,final_fourveloc,output_image)
+
+    return output_image
 end
 
 
@@ -412,5 +462,5 @@ N_x, N_y = 100, 100
 
 init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],5.0,0.0,-pi/2,0.0)
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
-println("Test")
+image = standard_CS_renderer("raytracing/celestial_spheres/QUSI_CS.png",test_container,final_allvector,N_x,N_y)
 
