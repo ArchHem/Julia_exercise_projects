@@ -404,6 +404,9 @@ end
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,true)
 
-init_allvectors = planar_camera_ray_generator(test_container,2,2,0.01,[0.0,0.0,5.0,0.0],5.0,0.0,-pi/2,0.0)
+N_x, N_y = 100, 100
+
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],5.0,0.0,-pi/2,0.0)
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
+println("Test")
 
