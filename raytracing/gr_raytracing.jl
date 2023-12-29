@@ -8,16 +8,16 @@ M = 1.0
 G = 1.0
 r_s = 2.0 * G * M / c^2
 
-g_00 = -(1.0 - r_s / x2) * c^2 
-g_11 =  (1.0 - r_s / x2)^(-1.0)
-g_22 = x2^2 * sin(x4)^2
-g_33 = x2^2 
+sch_g_00 = -(1.0 - r_s / x2) * c^2 
+sch_g_11 =  (1.0 - r_s / x2)^(-1.0)
+sch_g_22 = x2^2 * sin(x4)^2
+sch_g_33 = x2^2 
 
 sch_metric_representation = @SMatrix [
-    g_00 0.0 0.0 0.0;
-    0.0 g_11 0.0 0.0;
-    0.0 0.0 g_22 0.0;
-    0.0 0.0 0.0 g_33
+    sch_g_00 0.0 0.0 0.0;
+    0.0 sch_g_11 0.0 0.0;
+    0.0 0.0 sch_g_22 0.0;
+    0.0 0.0 0.0 sch_g_33
 ]
 
 t = x1
@@ -105,7 +105,9 @@ function generate_christoffel_symbol(metric::SMatrix{4,4,Num,16},coordinates::SV
         end
     end
 
-    for u in 1:4
+    println("Beginning simplification of Christoffel Symbols.")
+
+    for u in ProgressBar(1:4)
         for j in 1:4
             for i in 1:j
                 temp_CH_symbols[u][j,i] = temp_CH_symbols[u][i,j]
@@ -274,8 +276,10 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
             coord_veloc = @SVector [v1, v2, v3, v4]
             allvector =  SVector{8,Num}(vcat(coords,coord_veloc))
             acceleration = Vector{Num}([v1,v2,v3,v4,0.0,0.0,0.0,0.0])
-            for i in 1:4
-                acceleration[4+i] = - simplify(coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc)
+            println("Beginning calculation of four-acceleration function.")
+            #try a simplify here?
+            for i in ProgressBar(1:4)
+                acceleration[4+i] = - (coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc)
             end
             s_acceleration = SVector{8,Num}(acceleration)
         else
@@ -285,8 +289,9 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
             coord_veloc = @SVector [1.0, v2, v3, v4]
             allvector =  SVector{8,Num}(vcat(coords,coord_veloc))
             acceleration = Vector{Num}([1.0,v2,v3,v4,0.0,0.0,0.0,0.0])
+            println("Beginning calculation of four-acceleration function.")
             for i in 1:4
-                acceleration[4+i] = - simplify(coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc - (coord_veloc'metric_binder.CH_symbols[1,:,:]*coord_veloc)*coord_veloc[1])
+                acceleration[4+i] = - (coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc - (coord_veloc'metric_binder.CH_symbols[1,:,:]*coord_veloc)*coord_veloc[1])
             end
             s_acceleration = SVector{8,Num}(acceleration)
 
@@ -338,6 +343,8 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
 
         d0 = integrator.integrator_parameter_scaler(allvector)
 
+        
+
         d1_allvec = multi_acc(allvector)
 
         d2_allvec = multi_acc(allvector .+ 0.5 .* d0 .* d1_allvec)
@@ -350,8 +357,6 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
 
         global_del, local_del = integrator.ray_terminator(allvector, index_tracker)
 
-        
-        
         if length(global_del) > 0
             final_allvector[global_del] = allvector[local_del]
             index_tracker = deleteat!(index_tracker,local_del)
@@ -368,6 +373,43 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
 
     return initial_allvector, final_allvector
 end
+
+
+function ALC_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
+    current_indices::Vector{Int64})
+    N_current = length(current_indices)
+    global_indices_to_del = Vector{Int64}()
+    local_indices_to_del = Vector{Int64}()
+    
+    for i in 1:N_current
+        if sqrt(coord_allvector[i][3]^2 + coord_allvector[i][4]^2) > 12.0
+            push!(global_indices_to_del,current_indices[i])
+            push!(local_indices_to_del,i)
+        end
+    end
+    return global_indices_to_del, local_indices_to_del
+end
+
+function ALC_d0_scaler(coord_allvector::Vector{MVector{8, Float64}},
+    d0_inner::Float64 = -0.025)
+
+    N_current = length(coord_allvector)
+
+    d0 = ones(N_current)
+
+    for i in 1:N_current
+        d0[i] = d0_inner
+    end
+
+    return d0
+end
+
+function ALC_colorer(final_fourvectors::Vector{MVector{4, Float64}},final_fourvelocs::Vector{MVector{4, Float64}},image::Matrix{RGBA{N0f8}})
+    
+    return image
+end
+
+
 
 function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
     current_indices::Vector{Int64})
@@ -466,17 +508,90 @@ function standard_CS_renderer(image_path::String, metric_instance::metric_contai
     return output_image
 end
 
+@variables x1::Real, x2::Real, x3::Real, x4::Real
+@variables t_i::Real, x_i::Real, y_i::Real, z_i::Real
+
+#=
+c = 1.0
+M = 1.0
+G = 1.0
+r_s = 2.0 * G * M / c^2
+
+sch_g_00 = -(1.0 - r_s / x2) * c^2 
+sch_g_11 =  (1.0 - r_s / x2)^(-1.0)
+sch_g_22 = x2^2 * sin(x4)^2
+sch_g_33 = x2^2 
+
+sch_metric_representation = @SMatrix [
+    sch_g_00 0.0 0.0 0.0;
+    0.0 sch_g_11 0.0 0.0;
+    0.0 0.0 sch_g_22 0.0;
+    0.0 0.0 0.0 sch_g_33
+]
+
+t = x1
+x = x2 * sin(x4) * cos(x3)
+y = x2 * sin(x4) * sin(x3)
+z = x2 * cos(x4)
+
+x1_i = t_i
+x2_i = sqrt(x_i^2 + y_i^2 + z_i^2)
+x3_i = atan(y_i, x_i)
+x4_i = acos(z_i/x2_i)
+
+sch_coords = SVector(x1, x2, x3, x4)
+cartesian_coords = SVector(t,x,y,z)
+
+inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
+sch_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
+=#
+
+c = 1
+v_x = 0.5*c
+R = 5.0
+o = 1.0
+
+r = sqrt((v_x * x1 - x2)^2 + x3^2 + x4^2)
+f = ( tanh(o*(R + r)) - tanh(o*(r-R)) )  / (2 * tanh(o * R))
+
+alc_g_00 = v_x^2 * f^2 - 1.0
+alc_g_10 = -2 * v_x * f
+alc_g_11 = 1.0
+alc_g_22 = 1.0
+alc_g_33 = 1.0
+
+alc_metric_representation = @SMatrix [
+    alc_g_00 alc_g_10 0.0 0.0;
+    alc_g_10 alc_g_11 0.0 0.0;
+    0.0 0.0 alc_g_22 0.0;
+    0.0 0.0 0.0 alc_g_33
+]
+
+t = x1
+x = x2 
+y = x3 
+z = x4
+
+x1_i = t_i
+x2_i = x_i
+x3_i = y_i
+x4_i = z_i
+
+alc_coords = SVector(x1, x2, x3, x4)
+cartesian_coords = SVector(t,x,y,z)
+
+inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
+alc_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
+
+test_container = metric_container(alc_metric_representation,coords,cartesian_coords,alc_inverse_coords,inverse_cartesian_coords,1.0)
+test_integrator = integrator_struct(test_container,ALC_termination_cause,ALC_d0_scaler,true)
+
+N_x, N_y = 500, 500
 
 
-test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
-test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,true)
-
-N_x, N_y = 100, 100
-
-
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.05,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.066/4,[0.0,0.0,5.0,0.0],2.0,pi/2,0.0,0.0)
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
-image = standard_CS_renderer("raytracing/celestial_spheres/tracker.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
+image = standard_CS_renderer("raytracing/celestial_spheres/tracker.png",test_container,final_allvector,N_x,N_y,ALC_colorer)
 println("N/A")
-save("raytracing/renders/HP_test_02.png",image)
+save("raytracing/renders/HP_test_05.png",image)
 
