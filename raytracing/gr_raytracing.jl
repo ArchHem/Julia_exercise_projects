@@ -1,41 +1,5 @@
 using Symbolics, StaticArrays, Plots, NLsolve, ProgressBars, LinearAlgebra, Colors, Images
 
-@variables x1::Real, x2::Real, x3::Real, x4::Real
-@variables t_i::Real, x_i::Real, y_i::Real, z_i::Real
-
-c = 1.0
-M = 1.0
-G = 1.0
-r_s = 2.0 * G * M / c^2
-
-sch_g_00 = -(1.0 - r_s / x2) * c^2 
-sch_g_11 =  (1.0 - r_s / x2)^(-1.0)
-sch_g_22 = x2^2 * sin(x4)^2
-sch_g_33 = x2^2 
-
-sch_metric_representation = @SMatrix [
-    sch_g_00 0.0 0.0 0.0;
-    0.0 sch_g_11 0.0 0.0;
-    0.0 0.0 sch_g_22 0.0;
-    0.0 0.0 0.0 sch_g_33
-]
-
-t = x1
-x = x2 * sin(x4) * cos(x3)
-y = x2 * sin(x4) * sin(x3)
-z = x2 * cos(x4)
-
-x1_i = t_i
-x2_i = sqrt(x_i^2 + y_i^2 + z_i^2)
-x3_i = atan(y_i, x_i)
-x4_i = acos(z_i/x2_i)
-
-coords = SVector(x1, x2, x3, x4)
-cartesian_coords = SVector(t,x,y,z)
-
-inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
-inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
-
 #create a callable metric function using Symbolics.jl package; output can be mutative or allocating type
 function numeric_matrix_generator(matrix::StaticArray,coordinates::StaticArray)
     new_functions = build_function(matrix, coordinates)
@@ -583,14 +547,15 @@ cartesian_coords = SVector(t,x,y,z)
 inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
 alc_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
 
-test_container = metric_container(alc_metric_representation,coords,cartesian_coords,alc_inverse_coords,inverse_cartesian_coords,1.0)
+test_container = metric_container(alc_metric_representation,alc_coords,cartesian_coords,alc_inverse_coords,inverse_cartesian_coords,1.0)
 test_integrator = integrator_struct(test_container,ALC_termination_cause,ALC_d0_scaler,true)
 
 N_x, N_y = 1000, 500
 
 
 init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
-initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,7000)
+@profview initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,1)
+@profview initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,1000)
 image = standard_CS_renderer("raytracing/celestial_spheres/tracker.png",test_container,final_allvector,N_x,N_y,ALC_colorer)
 println("N/A")
 save("raytracing/renders/HP_test_06.png",image)
