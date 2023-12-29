@@ -589,9 +589,9 @@ test_integrator = integrator_struct(test_container,ALC_termination_cause,ALC_d0_
 N_x, N_y = 1000, 500
 
 
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],2.0,pi/2,0.0,0.0)
-initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
+initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,7000)
 image = standard_CS_renderer("raytracing/celestial_spheres/tracker.png",test_container,final_allvector,N_x,N_y,ALC_colorer)
 println("N/A")
-save("raytracing/renders/HP_test_05.png",image)
+save("raytracing/renders/HP_test_06.png",image)
 
