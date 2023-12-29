@@ -645,8 +645,8 @@ end
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 
 
-Nx = 200
-Ny = 200
+Nx = 100
+Ny = 100
 fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,Nx,Ny,0.01,Vector([0.0,0.0,5.0,0.0]),1.0,+pi/2,0.0,0.0)
 
 output_image = standard_CS_renderer_affine("raytracing/celestial_spheres/QUASI_CS.png",test_container,fourvec0,fourveloc0,KERR_termination_cause,KERR_d0_scaler,
