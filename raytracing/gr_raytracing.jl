@@ -7,7 +7,7 @@ c = 1.0
 M = 1.0
 G = 1.0
 r_s = 2.0 * G * M / c^2
-J = 0.8
+J = 0.0
 alpha = J/(M*c)
 
 const outer_horizon::Float64 = (r_s + sqrt(r_s^2 - 4*alpha^2))/2
@@ -395,7 +395,7 @@ function KERR_termination_cause(coord_fourpos::Vector{SVector{4, Float64}}, coor
 end
 
 function KERR_d0_scaler(coord_fourpos::Vector{SVector{4, Float64}}, coord_fourveloc::Vector{SVector{4, Float64}},
-    d0_inner::Float64 = -0.0125/2,d0_outer::Float64 = -0.025,zone_separator::Float64 = 10.0)
+    d0_inner::Float64 = -0.0125,d0_outer::Float64 = -0.05,zone_separator::Float64 = 10.0)
 
     N_current = length(coord_fourpos)
 
@@ -647,8 +647,8 @@ test_container = metric_container(sch_metric_representation,coords,cartesian_coo
 
 Nx = 200
 Ny = 200
-fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,Nx,Ny,0.02,Vector([0.0,0.0,5.0,0.0]),1.0,+pi/2,0.0,0.0)
+fourvec0, fourveloc0 = planar_camera_ray_generator(test_container,Nx,Ny,0.01,Vector([0.0,0.0,5.0,0.0]),1.0,+pi/2,0.0,0.0)
 
 output_image = standard_CS_renderer_affine("raytracing/celestial_spheres/QUASI_CS.png",test_container,fourvec0,fourveloc0,KERR_termination_cause,KERR_d0_scaler,
-Nx,Ny,SCH_colorer,12000)
+Nx,Ny,SCH_colorer,5000)
 save("raytracing/renders/test_06.png",output_image)
