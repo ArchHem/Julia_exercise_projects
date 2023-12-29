@@ -349,6 +349,8 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
         @. allvector += d0/6 * (d1_allvec + 2 * d2_allvec + 2 * d3_allvec + d4_allvec)
 
         global_del, local_del = integrator.ray_terminator(allvector, index_tracker)
+
+        
         
         if length(global_del) > 0
             final_allvector[global_del] = allvector[local_del]
@@ -451,6 +453,7 @@ function standard_CS_renderer(image_path::String, metric_instance::metric_contai
 
     for j in 1:N_x_cam
         for i in 1:N_y_cam
+
             y_index = ceil(Int64,quasi_theta[i,j]*Ny/(pi) ) 
             x_index = ceil(Int64,quasi_phi[i,j]*Nx/(2pi) ) 
             
@@ -468,11 +471,12 @@ end
 test_container = metric_container(sch_metric_representation,coords,cartesian_coords,inverse_coords,inverse_cartesian_coords,1.0)
 test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,true)
 
-N_x, N_y = 200, 200
+N_x, N_y = 100, 100
 
 
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.05/2,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.05,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
-image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
+image = standard_CS_renderer("raytracing/celestial_spheres/tracker.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
 println("N/A")
-save("raytracing/renders/HP_test_01.png",image)
+save("raytracing/renders/HP_test_02.png",image)
+
