@@ -374,7 +374,7 @@ function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
     local_indices_to_del = Vector{Int64}()
     
     for i in 1:N_current
-        if coord_allvector[i][2] < 2.025 || coord_allvector[i][2] > 30.0
+        if coord_allvector[i][2] < 2.0 * 1.025 || coord_allvector[i][2] > 30.0
             push!(global_indices_to_del,current_indices[i])
             push!(local_indices_to_del,i)
         end
@@ -399,6 +399,16 @@ function SCH_d0_scaler(coord_allvector::Vector{MVector{8, Float64}},
     return d0
 end
 
+function SCH_colorer(final_fourvectors::Vector{MVector{4, Float64}},final_fourvelocs::Vector{MVector{4, Float64}},image::Matrix{RGBA{N0f8}})
+    for i in eachindex(image)
+        if final_fourvectors[i][2] < 2.0 * 1.025
+            
+            image[i] = RGBA{N0f8}(0.0,0.0,0.0,1.0)
+        end
+    end
+    return image
+end
+
 function standard_CS_renderer(image_path::String, metric_instance::metric_container,allvector::Vector{MVector{8,Float64}},N_x_cam::Int64, N_y_cam::Int64,
     custom_colorer::Function
     )
@@ -411,7 +421,7 @@ function standard_CS_renderer(image_path::String, metric_instance::metric_contai
 
     N_rays = length(allvector)
 
-    final_fourpos, final_fourveloc = Vector{MVector{8,Float64}}(undef,N_rays), Vector{MVector{8,Float64}}(undef,N_rays)
+    final_fourpos, final_fourveloc = Vector{MVector{4,Float64}}(undef,N_rays), Vector{MVector{4,Float64}}(undef,N_rays)
 
     for i in 1:N_rays
         final_fourpos[i] = allvector[i][1:4]
@@ -462,5 +472,6 @@ N_x, N_y = 100, 100
 
 init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],5.0,0.0,-pi/2,0.0)
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,5000)
-image = standard_CS_renderer("raytracing/celestial_spheres/QUSI_CS.png",test_container,final_allvector,N_x,N_y)
-
+image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
+println("N/A")
+save("raytracing/renders/HP_test.png")
