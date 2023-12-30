@@ -1,4 +1,4 @@
-using MLDatasets
+using MLDatasets, Plots, ProgressBars
 
 train_x, train_y = MNIST.traindata()
 
@@ -86,6 +86,7 @@ function binary_crossentropy_der(ypredict::Vector{Float64},
 end
 
 struct NN_network
+    #if one aims for HP, we would need to include the types of the layer functions in order not to use abstract types.
     N_neurons::Vector{Int64}
     layer_weights::Vector{Matrix{Float64}}
     layer_biases::Vector{Vector{Float64}}
@@ -211,15 +212,6 @@ function train_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vec
     end
 end
 
-function epoch_train_network(input_vectors::Vector{Vector{Float64}},labels::Vector{Vector{Float64}},NN_instance::NN_network,
-    learning_rate::Float64 = 1e-2,batch_length::Int64 = 10, epoch_count::Int64 = 50)
-
-    for i in epoch_count
-        train_network(input_vectors,labels,NN_instance,learning_rate,batch_length)
-    end
-
-end
-
 function validate_model(test_vectors::Vector{Vector{Float64}},test_labels::Vector{Vector{Float64}},NN_instance::NN_network)
     N = length(test_labels)
 
@@ -237,14 +229,42 @@ function validate_model(test_vectors::Vector{Vector{Float64}},test_labels::Vecto
     return correct_guess, N-correct_guess
 end
 
+function epoch_train_network!(input_vectors::Vector{Vector{Float64}},labels::Vector{Vector{Float64}},NN_instance::NN_network,
+    test_vectors::Vector{Vector{Float64}},
+    test_labels::Vector{Vector{Float64}},
+    learning_rate::Float64 = 1e-3,batch_length::Int64 = 10, epoch_count::Int64 = 50, run_diagnostics::Bool = true)
+
+    corrvec = zeros(Int64,(epoch_count))
+    incorrvec = zeros(Int64,(epoch_count))
+
+    for i in ProgressBar(1:epoch_count)
+        train_network(input_vectors,labels,NN_instance,learning_rate,batch_length)
+        if run_diagnostics
+            corr, incorr = validate_model(test_vectors,test_labels,NN_instance)
+            corrvec[i] = corr
+            incorrvec[i] = incorr
+        end
+    end
+    if run_diagnostics
+        epoc_index = collect(1:epoch_count)
+        
+        return epoc_index, corrvec, incorrvec
+    end
+
+end
+
+
+
 neuron_arr = Vector{Int64}([28^2,40,40,10])
 funcs = Vector{Function}([RELU,RELU,RELU])
 func_derivs = Vector{Function}([RELU_der,RELU_der,RELU_der])
 test = NN_network(neuron_arr,funcs,func_derivs,softmax_CE,softmax_CE_der)
 
-epoch_train_network(f_train_x,f_train_y,test)
+x, yc, ye = epoch_train_network!(f_train_x,f_train_y,test,f_test_x,f_test_y)
 
 println("Training done")
+plot(x,[yc,ye],label = ["Number of correct guesses on test dataset" "Number of incorrect guesses on test dataset"],
+title = "Network performance over epochs.")
 
 println(validate_model(f_train_x,f_train_y,test))
 println(validate_model(f_test_x,f_test_y,test))
