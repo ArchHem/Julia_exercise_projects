@@ -210,7 +210,7 @@ function planar_camera_ray_generator(metric_instance::metric_container,N_x::Int6
     for i in 1:N_rays
         initial_coord_pos[i] = SVector{4,Float64}(metric_instance.from_cartesian_to_coords(initial_position_vector[i]) )
     end
-    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,norm_quant,coordinate_basis)
+    initial_coord_velocs = normalize_fourveloc_bunch(metric_instance,initial_position_vector,initial_normal_vectors,norm_quant)
     allvectors = Vector{MVector{8,Float64}}(undef,(N_rays,))
     for i in 1:N_rays
         lvec = vcat(initial_coord_pos[i],initial_coord_velocs[i])
@@ -549,7 +549,7 @@ alc_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
 test_container = metric_container(alc_metric_representation,alc_coords,cartesian_coords,alc_inverse_coords,inverse_cartesian_coords,1.0)
 test_integrator = integrator_struct(test_container,ALC_termination_cause,ALC_d0_scaler,true)
 
-N_x, N_y = 1000, 500
+N_x, N_y = 100, 50
 
 
 init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
