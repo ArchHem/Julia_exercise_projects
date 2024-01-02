@@ -509,10 +509,11 @@ inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
 sch_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
 =#
 
+#=
 c = 1
 v_x = 0.5*c
 R = 3.0
-o = 0.5
+o = 0.8
 
 r = sqrt((v_x * x1 - x2)^2 + x3^2 + x4^2)
 f = ( tanh(o*(R + r)) - tanh(o*(r-R)) )  / (2 * tanh(o * R))
@@ -545,17 +546,18 @@ cartesian_coords = SVector(t,x,y,z)
 
 inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
 alc_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
+=#
 
 test_container = metric_container(alc_metric_representation,alc_coords,cartesian_coords,alc_inverse_coords,inverse_cartesian_coords,1.0)
 test_integrator = integrator_struct(test_container,ALC_termination_cause,ALC_d0_scaler,true)
 
-N_x, N_y = 100, 50
+N_x, N_y = 800, 400
 
 
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01/2,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
 
-initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,1000)
-image = standard_CS_renderer("raytracing/celestial_spheres/tracker.png",test_container,final_allvector,N_x,N_y,ALC_colorer)
+initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,30000)
+image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,final_allvector,N_x,N_y,ALC_colorer)
 println("N/A")
 save("raytracing/renders/HP_test_06.png",image)
 
