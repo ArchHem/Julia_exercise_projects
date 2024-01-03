@@ -226,8 +226,10 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
     ray_terminator::T2
     integrator_parameter_scaler::T3
     is_affine::Bool
+    
 
-    function integrator_struct(metric_binder::metric_container,ray_terminator,affine_parameter_scaler,is_affine)
+    function integrator_struct(metric_binder::metric_container,ray_terminator,affine_parameter_scaler,is_affine,
+        do_simplify::Bool = true)
         coords = metric_binder.coordinates
         @variables v1::Real, v2::Real, v3::Real, v4::Real
         coord_veloc = @SVector [v1, v2, v3, v4]
@@ -243,6 +245,10 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
             #try a simplify here?
             for i in ProgressBar(1:4)
                 acceleration[4+i] = - (coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc)
+                if do_simplify
+                    acceleration[4+i] = simplify(acceleration[4+i])
+                end
+                
             end
             s_acceleration = SVector{8,Num}(acceleration)
         else
@@ -255,13 +261,15 @@ struct integrator_struct{T1<:Function, T2<:Function, T3<:Function}
             println("Beginning calculation of four-acceleration function.")
             for i in 1:4
                 acceleration[4+i] = - (coord_veloc'metric_binder.CH_symbols[i,:,:] * coord_veloc - (coord_veloc'metric_binder.CH_symbols[1,:,:]*coord_veloc)*coord_veloc[1])
+                if do_simplify
+                    acceleration[4+i] = simplify(acceleration[4+i])
+                end
             end
             s_acceleration = SVector{8,Num}(acceleration)
+            
 
         end
         
-        
-
         effective_acceleration = numeric_matrix_generator(s_acceleration, allvector)[1]
         
 
@@ -278,7 +286,7 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
         outp = Vector{MVector{8,Float64}}(undef,(N_rays,))
         Threads.@threads for i in 1:N_rays
             temp = integrator.fouracc_calculator(allvectors[i])
-            for j in 1:4
+            for j in 1:8
                 @inbounds temp[j] = ifelse((isfinite(temp[j])), temp[j], 0.0)
             end
             outp[i] = temp
@@ -297,7 +305,7 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
     #auxillary_color_data = Vector{Vector{Float64}}([zeros(3) for i in 1:N_init])
     #TODO? add tracker for the affine parameter itself. (not really needed...)
 
-    for t in ProgressBar(1:number_of_steps)
+    for t in 1:number_of_steps
         
         if length(index_tracker) == 0
             println("All terms terminated at timestep " * string(t))
@@ -305,8 +313,6 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
         end
 
         d0 = integrator.integrator_parameter_scaler(allvector)
-
-        
 
         d1_allvec = multi_acc(allvector)
 
@@ -317,6 +323,8 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
         d4_allvec = multi_acc(allvector .+ d0 .* d3_allvec)
 
         @. allvector += d0/6 * (d1_allvec + 2 * d2_allvec + 2 * d3_allvec + d4_allvec)
+
+        
 
         global_del, local_del = integrator.ray_terminator(allvector, index_tracker)
 
@@ -381,7 +389,7 @@ function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
     local_indices_to_del = Vector{Int64}()
     
     for i in 1:N_current
-        if coord_allvector[i][2] < 2.0 * 1.025 || coord_allvector[i][2] > 20.0
+        if coord_allvector[i][2] < 2.0 * 1.025 || coord_allvector[i][2] > 30.0
             push!(global_indices_to_del,current_indices[i])
             push!(local_indices_to_del,i)
         end
@@ -409,6 +417,7 @@ end
 function SCH_colorer(final_fourvectors::Vector{MVector{4, Float64}},final_fourvelocs::Vector{MVector{4, Float64}},image::Matrix{RGBA{N0f8}})
     for i in eachindex(image)
         if final_fourvectors[i][2] < 2.0 * 1.025
+            
             
             image[i] = RGBA{N0f8}(0.0,0.0,0.0,1.0)
         end
@@ -474,7 +483,7 @@ end
 @variables x1::Real, x2::Real, x3::Real, x4::Real
 @variables t_i::Real, x_i::Real, y_i::Real, z_i::Real
 
-#=
+
 c = 1.0
 M = 1.0
 G = 1.0
@@ -507,7 +516,7 @@ cartesian_coords = SVector(t,x,y,z)
 
 inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
 sch_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
-=#
+
 
 #=
 c = 1
@@ -548,16 +557,17 @@ inverse_cartesian_coords = SVector(t_i,x_i,y_i,z_i)
 alc_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
 =#
 
-test_container = metric_container(alc_metric_representation,alc_coords,cartesian_coords,alc_inverse_coords,inverse_cartesian_coords,1.0)
-test_integrator = integrator_struct(test_container,ALC_termination_cause,ALC_d0_scaler,true)
+test_container = metric_container(sch_metric_representation,sch_coords,cartesian_coords,sch_inverse_coords,inverse_cartesian_coords,1.0)
+test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,false)
 
-N_x, N_y = 800, 400
+N_x, N_y = 400, 400
 
 
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.01/2,[0.0,0.0,5.0,0.0],1.0,pi/2,0.0,0.0)
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.005,[0.0,0.0,0.0,15.0],1.0,0.0,0.0,0.0)
 
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,30000)
-image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,final_allvector,N_x,N_y,ALC_colorer)
+
+image = standard_CS_renderer("raytracing/celestial_spheres/QUASI_CS.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
 println("N/A")
 save("raytracing/renders/HP_test_06.png",image)
 
