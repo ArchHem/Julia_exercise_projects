@@ -1,6 +1,10 @@
 
 module ADM_raytracing
-using Symbolics, StaticArrays, ProgressBars
+using Symbolics, StaticArrays, ProgressBars, LinearAlgebra
+
+function levis_civita_generator()
+    
+end
 
 function numeric_array_generator(matrix,coordinates)
     new_functions = build_function(matrix, coordinates)
@@ -74,6 +78,7 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
     inverse_metric::SMatrix{4,4,Num,16}
     coordinates::SVector{4,Num}
     Christoffel_symbols::SArray{Tuple{4, 4, 4}, Num, 3, 64}
+    bound_epsilon::Int64
 
     #symbolic functions
     alpha::Num
@@ -173,7 +178,7 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
         T2 = typeof(acceleration_function)
         T3 = typeof(numeric_u0)
 
-        new{T0,T1,T2,T3}(metric_representation,inverse_sym_metric,coordinates,chr_symbols,
+        new{T0,T1,T2,T3}(metric_representation,inverse_sym_metric,coordinates,chr_symbols,epsilon,
         alpha,beta,gamma,
         numeric_metric,inverse_numeric_metric,acceleration_function,numeric_u0)
     end
@@ -224,6 +229,104 @@ function integrate_ADM_geodesics_RK4_tracked(metric_binder::ADM_metric_container
 
 end
 
+function integrate_ADM_geodesics_RK4(metric_binder::ADM_metric_container,initial_allvector::Vector{MVector{8,Float64}}, 
+    number_of_steps::Int64, dt_scaler::Function, terminator_function::Function)
+
+    function multi_acc(allvectors::Vector{MVector{8,Float64}})
+        N_rays = length(allvectors)
+        outp = Vector{MVector{8,Float64}}(undef,(N_rays,))
+        Threads.@threads for i in 1:N_rays
+            temp = metric_binder.numeric_acceleration(allvectors[i])
+            for j in 1:8
+                @inbounds temp[j] = ifelse((isfinite(temp[j])), temp[j], 0.0)
+            end
+            outp[i] = temp
+        end
+        
+        return outp
+    end
+
+    allvector = copy(initial_allvector)
+    N_init = length(allvector)
+    index_tracker = Vector{Int64}(collect(1:N_init))
+
+    final_allvector = Vector{MVector{8,Float64}}(undef,N_init)
+
+    for t in ProgressBar(1:number_of_steps)
+        
+        if length(index_tracker) == 0
+            println("All terms terminated at timestep " * string(t))
+            break
+        end
+
+        d0 = dt_scaler(allvector)
+
+        d1_allvec = multi_acc(allvector)
+
+        d2_allvec = multi_acc(allvector .+ 0.5 .* d0 .* d1_allvec)
+
+        d3_allvec = multi_acc(allvector .+ 0.5 .* d0 .* d2_allvec)
+
+        d4_allvec = multi_acc(allvector .+ d0 .* d3_allvec)
+
+        @. allvector += d0/6 * (d1_allvec + 2 * d2_allvec + 2 * d3_allvec + d4_allvec)
+
+        
+
+        global_del, local_del = terminator_function(allvector, index_tracker)
+
+        if length(global_del) > 0
+            final_allvector[global_del] = allvector[local_del]
+            index_tracker = deleteat!(index_tracker,local_del)
+            allvector = deleteat!(allvector,local_del)
+            
+        end 
+
+    end
+
+    final_allvector[index_tracker] = allvector
+    
+
+    println(string(length(index_tracker)) * " rays remain underminated.")
+
+    return final_allvector
+
+end
+
+function camera_rays_generator(metric_binder::ADM_metric_container,
+    initial_fourpos::MVector{4,Float64},initial_fourvelocity::MVector{4,Float64},
+    camera_front_vector::MVector{4,Float64},camera_up_vector::MVector{4,Float64},
+    angular_pixellation::Float64 = 0.1,N_x::Int64 = 200,N_y::Int64 = 200)
+
+    local_metric = metric_binder.numeric_metric(initial_fourpos)
+    local_inverse_metric = metric_binder.numeric_inverse_metric(initial_fourpos)
+
+    metric_determinant = det(local_metric)
+
+    initial_norm = initial_fourvelocity'local_metric*initial_fourvelocity
+
+    if initial_norm > 0.0
+        throw(ArgumentError("Spacelike four-velocity given for the camera."))
+    end
+    if (camera_front_vector[1] == camera_up_vector[1] == 0.0) != true
+        throw((ArgumentError("Camera alignment vectors must have a zero temporal part!")))
+    end
+
+    normalizing_quant = sqrt(-1.0/initial_norm)
+
+    initial_fourvelocity = normalizing_quant .* initial_fourvelocity
+
+    e0 = copy(initial_fourvelocity)
+
+    #since v1, v2 is going to be a spacelike vector....
+    v1 = camera_front_vector .- (camera_front_vector'local_metric*e0) .* e0
+
+    e1 = v1 ./ sqrt(v1'local_metric*v1)
+
+    v2 = camera_up_vector .- (camera_up_vector'local_metric*e0) .- (camera_up_vector'local_metric*e1)
+
+    e2 = v2 ./ sqrt(v2'local_metric*v2)
+
 
 
 
@@ -231,6 +334,12 @@ end
 
 
 end
+
+
+
+end
+
+#module end -.-.-.-.-.-.-
 
 using Symbolics, StaticArrays, Plots
 
@@ -264,14 +373,30 @@ function SCH_d0_scaler(allvector::Vector{MVector{8,Float64}},def::Float64 = -0.0
     return outp
 end
 
+function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
+    current_indices::Vector{Int64})
+    N_current = length(coord_allvector)
+    global_indices_to_del = Vector{Int64}()
+    local_indices_to_del = Vector{Int64}()
+    
+    for i in 1:N_current
+        if coord_allvector[i][2] < 2.0 * 1.025 || coord_allvector[i][2] > 30.0
+            push!(global_indices_to_del,current_indices[i])
+            push!(local_indices_to_del,i)
+        end
+    end
+    return global_indices_to_del, local_indices_to_del
+
+end
+
 SCH_ADM = ADM_raytracing.ADM_metric_container(sch_metric_representation,coordinates)
 
 #example of raytracing in SCH spacetime
 
 initial_position = [0.0,10.0,0.0,pi/2]
 initial_spatial_veloc = [0.7,0.2,0.0]
-init_guess = [@MVector [0.0,10.0,0.0,pi/2,0.0,0.2,0.8,0.0] for k in -20:20]
-deviations = [@MVector [0.0,0.0,0.0,0.0,0.0,0.0,k*0.01,0.0] for k in -20:20]
+init_guess = [@MVector [0.0,10.0,0.0,pi/2,0.0,0.2,0.8,0.0] for k in -10:10]
+deviations = [@MVector [0.0,0.0,0.0,0.0,0.0,0.0,k*0.06,0.0] for k in -10:10]
 
 init_conditions = init_guess .+ deviations
 
@@ -281,9 +406,25 @@ const timesteps = 2000
 raytraced_coords = ADM_raytracing.integrate_ADM_geodesics_RK4_tracked(SCH_ADM,initial_allvector,timesteps,SCH_d0_scaler)
 n_rays = length(raytraced_coords[1])
 
-r = [raytraced_coords[t][]]
+final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,initial_allvector,timesteps,SCH_d0_scaler,SCH_termination_cause)
+
+r = zeros(Float64,n_rays,timesteps)
 phi = zeros(Float64,n_rays,timesteps)
 
+for n in 1:n_rays
+    for t in 1:timesteps
+        r[n,t] = raytraced_coords[t][n][2]
+        phi[n,t] = raytraced_coords[t][n][3]
+    end
+end
+
+x = r .* cos.(phi)
+y = r .* sin.(phi)
+#run the following in the REPL if it doesnt work in VSCODE
+plot([x[n,:] for n in 1:n_rays], 
+[y[n,:] for n in 1:n_rays])
+xlims!(-20, 20)
+ylims!(-20, 20)
 
 println("test")
 
