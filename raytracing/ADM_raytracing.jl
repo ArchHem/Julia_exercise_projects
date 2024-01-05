@@ -328,12 +328,14 @@ end
 function camera_rays_generator(metric_binder::ADM_metric_container,
     initial_fourpos::MVector{4,Float64},initial_fourvelocity::MVector{4,Float64},
     camera_front_vector::MVector{4,Float64},camera_up_vector::MVector{4,Float64},
-    angular_pixellation::Float64 = 0.1,N_x::Int64 = 200,N_y::Int64 = 200)
+    angular_pixellation::Float64 = 0.1,N_x::Int64 = 400,N_y::Int64 = 200)
 
     local_metric = metric_binder.numeric_metric(initial_fourpos)
     local_inverse_metric = metric_binder.numeric_inverse_metric(initial_fourpos)
+    
 
     levi = levi_civita_generator()
+    l_eps = metric_binder.bound_epsilon
 
     metric_determinant = det(local_metric)
 
@@ -353,11 +355,14 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     e0 = copy(initial_fourvelocity)
 
     #since v1, v2 is going to be a spacelike vector....
-    v1 = camera_front_vector .- (camera_front_vector'local_metric*e0) .* e0
+    
+    v1 = camera_front_vector + (e0'local_metric*camera_front_vector) .* e0
 
     e1 = v1 ./ sqrt(v1'local_metric*v1)
 
-    v2 = camera_up_vector .- (camera_up_vector'local_metric*e0) .- (camera_up_vector'local_metric*e1)
+    #whener we are projecting unto e0, use that its norm is -1, not +1, hence the addition.
+
+    v2 = camera_up_vector + (camera_up_vector'local_metric*e0) .*e0 - (camera_up_vector'local_metric*e1) .*e1
 
     e2 = v2 ./ sqrt(v2'local_metric*v2)
 
@@ -379,6 +384,27 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
 
     e3 = e3 ./ sqrt(e3'local_metric*e3)
 
+    a_array = collect(LinRange(0,1,N_x))
+    b_array = collect(LinRange(0,1,N_y))
+
+    alpha_h = angular_pixellation * N_x
+    alpha_v = angular_pixellation * N_y
+
+    meshgrid_a = ones(N_y) .* a_array'
+    meshgrid_b = b_array .* ones(N_x)'
+
+    preliminary_momenta = Vector{MVector{4,Float64}}(undef,N_x*N_y)
+
+    for k in eachindex(meshgrid_a)
+        a = meshgrid_a[k]
+        b = meshgrid_b[k]
+        C = sqrt(1 + (2b-1)^2 * tan(alpha_v)^2 + (2a-1)^2 * tan(alpha_h)^2 - l_eps)
+        
+        temp = C .* e0 - e1 - (2b-1) * tan(alpha_v) .* e2 - (2a-1) * tan(alpha_h) .* e3
+        preliminary_momenta[k] = temp
+        
+        
+    end
     
 
 end
@@ -478,7 +504,7 @@ ylims!(-20, 20)
 println("test")
 =#
 
-camera_veloc = @MVector [1.0,0.1,0.0,0.0]
+camera_veloc = @MVector [1.0,0.2,0.0,0.0]
 camera_pos = @MVector [0.0,5.0,0.0,pi/2]
 camera_front = @MVector [0.0, 1.0, 0.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
