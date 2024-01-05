@@ -2,8 +2,40 @@
 module ADM_raytracing
 using Symbolics, StaticArrays, ProgressBars, LinearAlgebra
 
-function levis_civita_generator()
-    
+function permutation_sign(perm::AbstractVector{Int64})
+    #only works for unique permutations
+    L = length(perm)
+    crosses = 0
+    for i = 1:L
+        for j = i+1 : L
+            crosses += perm[j] < perm[i]
+        end
+    end
+    return iseven(crosses) ? 1 : -1    
+end
+
+function levi_civita_generator()
+    outp = zeros(Int64,4,4,4,4)
+    for d in 1:4
+        
+        for c in 1:4
+            
+            for b in 1:4
+                
+                for a in 1:4
+
+                    number_uniq = length(unique([a,b,c,d]))
+                    
+                    if number_uniq == 4
+                        
+                        outp[a,b,c,d] = permutation_sign([a,b,c,d])
+                    end
+
+                end
+            end
+        end
+    end
+    return outp
 end
 
 function numeric_array_generator(matrix,coordinates)
@@ -301,6 +333,8 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     local_metric = metric_binder.numeric_metric(initial_fourpos)
     local_inverse_metric = metric_binder.numeric_inverse_metric(initial_fourpos)
 
+    levi = levi_civita_generator()
+
     metric_determinant = det(local_metric)
 
     initial_norm = initial_fourvelocity'local_metric*initial_fourvelocity
@@ -327,11 +361,25 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
 
     e2 = v2 ./ sqrt(v2'local_metric*v2)
 
+    e3 = sqrt(-metric_determinant) .* levi
 
+    e3_lower = zeros(Float64,4)
 
+    for l in 1:4
+        for u in 1:4
+            for v in 1:4
+                for p in 1:4
+                    e3_lower[p] = e3_lower[p] + levi[l,u,v,p] .* e0[l] .* e1[u] .* e2[v]
+                end
+            end
+        end
+    end
 
+    e3 = local_inverse_metric * e3_lower
 
+    e3 = e3 ./ sqrt(e3'local_metric*e3)
 
+    
 
 end
 
@@ -393,6 +441,7 @@ SCH_ADM = ADM_raytracing.ADM_metric_container(sch_metric_representation,coordina
 
 #example of raytracing in SCH spacetime
 
+#=
 initial_position = [0.0,10.0,0.0,pi/2]
 initial_spatial_veloc = [0.7,0.2,0.0]
 init_guess = [@MVector [0.0,10.0,0.0,pi/2,0.0,0.2,0.8,0.0] for k in -10:10]
@@ -427,5 +476,10 @@ xlims!(-20, 20)
 ylims!(-20, 20)
 
 println("test")
+=#
 
-
+camera_veloc = @MVector [1.0,0.1,0.0,0.0]
+camera_pos = @MVector [0.0,5.0,0.0,pi/2]
+camera_front = @MVector [0.0, 1.0, 0.0, 0.0]
+camera_up = @MVector [0.0,0.0,0.0,1.0]
+ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up)
