@@ -305,7 +305,7 @@ function integrate_geodesics(integrator::integrator_struct,allvector::Vector{MVe
     #auxillary_color_data = Vector{Vector{Float64}}([zeros(3) for i in 1:N_init])
     #TODO? add tracker for the affine parameter itself. (not really needed...)
 
-    for t in 1:number_of_steps
+    for t in ProgressBar(1:number_of_steps)
         
         if length(index_tracker) == 0
             println("All terms terminated at timestep " * string(t))
@@ -558,12 +558,12 @@ alc_inverse_coords = SVector(x1_i, x2_i, x3_i, x4_i)
 =#
 
 test_container = metric_container(sch_metric_representation,sch_coords,cartesian_coords,sch_inverse_coords,inverse_cartesian_coords,1.0)
-test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,false)
+test_integrator = integrator_struct(test_container,SCH_termination_cause,SCH_d0_scaler,true)
 
-N_x, N_y = 400, 400
+N_x, N_y = 400, 200
 
 
-init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.005,[0.0,0.0,0.0,15.0],1.0,0.0,0.0,0.0)
+init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.005,[0.0,0.0,0.0,-15.0],1.0,0.0,0.0,0.0)
 
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,30000)
 

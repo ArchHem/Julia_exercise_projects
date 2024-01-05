@@ -140,8 +140,8 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
         gamma = metric_representation[2:4,2:4]
         beta = metric_representation[1,2:4]
         gamma_up = inv(gamma)
-        beta_up = gamma_up * beta
-        alpha = sqrt(beta'beta_up - metric_representation[1,1])
+        beta_up = simplify(gamma_up * beta)
+        alpha = simplify(sqrt(beta'beta_up - metric_representation[1,1]))
 
         # https://iopscience.iop.org/article/10.3847/1538-4365/aac9ca/pdf?fbclid=IwAR0pORzJb6EvCVdTIWo32F6wxhdd3_eQE_-x8afe94Y8dY_2IH_NuNcPiD0
 
@@ -328,7 +328,7 @@ end
 function camera_rays_generator(metric_binder::ADM_metric_container,
     initial_fourpos::MVector{4,Float64},initial_fourvelocity::MVector{4,Float64},
     camera_front_vector::MVector{4,Float64},camera_up_vector::MVector{4,Float64},
-    angular_pixellation::Float64 = 0.1,N_x::Int64 = 400,N_y::Int64 = 200)
+    angular_pixellation::Float64 = 0.001,N_x::Int64 = 400,N_y::Int64 = 200)
 
     local_metric = metric_binder.numeric_metric(initial_fourpos)
     local_inverse_metric = metric_binder.numeric_inverse_metric(initial_fourpos)
@@ -393,7 +393,7 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     meshgrid_a = ones(N_y) .* a_array'
     meshgrid_b = b_array .* ones(N_x)'
 
-    preliminary_momenta = Vector{MVector{4,Float64}}(undef,N_x*N_y)
+    preliminary_lower_momenta = Vector{MVector{4,Float64}}(undef,N_x*N_y)
 
     for k in eachindex(meshgrid_a)
         a = meshgrid_a[k]
@@ -401,12 +401,20 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
         C = sqrt(1 + (2b-1)^2 * tan(alpha_v)^2 + (2a-1)^2 * tan(alpha_h)^2 - l_eps)
         
         temp = C .* e0 - e1 - (2b-1) * tan(alpha_v) .* e2 - (2a-1) * tan(alpha_h) .* e3
-        preliminary_momenta[k] = temp
+        temp .= temp./temp[1]
+        lowered_momenta = local_metric * temp
+        preliminary_lower_momenta[k] = lowered_momenta
         
         
     end
-    
 
+    outp = Vector{MVector{8,Float64}}(undef,N_x*N_y)
+
+    for k in eachindex(outp)
+        outp[k] = MVector{8,Float64}([initial_fourpos; preliminary_lower_momenta[k]])
+    end
+
+    return outp
 end
 
 
@@ -505,7 +513,9 @@ println("test")
 =#
 
 camera_veloc = @MVector [1.0,0.2,0.0,0.0]
-camera_pos = @MVector [0.0,5.0,0.0,pi/2]
-camera_front = @MVector [0.0, 1.0, 0.0, 0.0]
+camera_pos = @MVector [0.0,15.0,0.0,pi/2]
+camera_front = @MVector [0.0, -1.0, 0.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
-ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up)
+rays_initial_allvector = ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up)
+final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,rays_initial_allvector,6000,SCH_d0_scaler,SCH_termination_cause)
+println("test")
