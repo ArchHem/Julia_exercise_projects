@@ -1,6 +1,6 @@
 
 module ADM_raytracing
-using Symbolics, StaticArrays, ProgressBars, LinearAlgebra
+using Symbolics, StaticArrays, ProgressBars, LinearAlgebra, Colors, Images
 
 function permutation_sign(perm::AbstractVector{Int64})
     #only works for unique permutations
@@ -244,7 +244,7 @@ function integrate_ADM_geodesics_RK4_tracked(metric_binder::ADM_metric_container
 
         data_storage[t] = copy(allvector)
 
-        d0 = dt_scaler(allvector)
+        d0 = dt_scaler(metric_binder,allvector)
 
         d1_allvec = multi_acc(allvector)
 
@@ -293,7 +293,7 @@ function integrate_ADM_geodesics_RK4(metric_binder::ADM_metric_container,initial
             break
         end
 
-        d0 = dt_scaler(allvector)
+        d0 = dt_scaler(metric_binder,allvector)
 
         d1_allvec = multi_acc(allvector)
 
@@ -307,7 +307,7 @@ function integrate_ADM_geodesics_RK4(metric_binder::ADM_metric_container,initial
 
         
 
-        global_del, local_del = terminator_function(allvector, index_tracker)
+        global_del, local_del = terminator_function(metric_binder,allvector, index_tracker)
 
         if length(global_del) > 0
             final_allvector[global_del] = allvector[local_del]
@@ -392,6 +392,9 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     alpha_h = angular_pixellation * N_x
     alpha_v = angular_pixellation * N_y
 
+    println("Your selected vertical radian range is: "*string(alpha_v))
+    println("Your selected horizontal radian range is: "*string(alpha_h))
+
     meshgrid_a = ones(N_y) .* a_array'
     meshgrid_b = b_array .* ones(N_x)'
 
@@ -400,9 +403,9 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     for k in eachindex(meshgrid_a)
         a = meshgrid_a[k]
         b = meshgrid_b[k]
-        C = sqrt(1 + (2b-1)^2 * tan(alpha_v)^2 + (2a-1)^2 * tan(alpha_h)^2 - l_eps)
+        C = sqrt(1 + (2b-1)^2 * tan(alpha_v/2)^2 + (2a-1)^2 * tan(alpha_h/2)^2 - l_eps)
         
-        temp = C .* e0 - e1 - (2b-1) * tan(alpha_v) .* e2 - (2a-1) * tan(alpha_h) .* e3
+        temp = C .* e0 - e1 - (2b-1) * tan(alpha_v/2) .* e2 - (2a-1) * tan(alpha_h/2) .* e3
         temp .= temp./temp[1]
         lowered_momenta = local_metric * temp
         preliminary_lower_momenta[k] = lowered_momenta
@@ -419,13 +422,72 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     return outp
 end
 
+function render_image(metric::ADM_metric_container,image_path::String,N_x_cam::Int64,N_y_cam::Int64,
+    final_allvector::Vector{MVector{8,Float64}},celestial_sphere_caster::Function,auxillary_colorer::Function)
+
+    quasi_phi, quasi_theta = celestial_sphere_caster(metric,final_allvector)
+
+    #stores two angles (ranging from 0 to 2pi and from 0 to pi)
+
+    celestial_sphere = load(image_path)
+
+    Ny, Nx = size(celestial_sphere)
+
+    output_image = Matrix{eltype(celestial_sphere)}(undef,(N_y_cam,N_x_cam))
+
+    quasi_theta = reshape(quasi_theta, (N_y_cam,N_x_cam))
+    quasi_phi = reshape(quasi_phi, (N_y_cam,N_x_cam))
+
+    for j in 1:N_x_cam
+        for i in 1:N_y_cam
+            y_index = ceil(Int64,quasi_theta[i,j]*Ny/(pi) ) 
+            x_index = ceil(Int64,quasi_phi[i,j]*Nx/(2pi) ) 
+            
+            output_image[i,j] = celestial_sphere[y_index, x_index]
+        end
+    end
+
+    output_image = auxillary_colorer(metric,final_allvector,output_image)
+
+    return output_image
 
 
 end
 
-#module end -.-.-.-.-.-.-
+function integrated_redshift_ratio(metric::ADM_metric_container,
+    final_allvector::MVector{8,Float64},initial_allvector::MVector{8,Float64})
 
-using Symbolics, StaticArrays, Plots
+    #can't take into account the source moving when used in conjungtion with the current ADM integrator
+
+    p_final = metric.numeric_inverse_metric(final_allvector[1:4]) * final_allvector[5:8]
+    p_initial = metric.numeric_inverse_metric(initial_allvector[1:4]) * initial_allvector[5:8]
+
+    redshift = p_final[1]/p_initial[1] #or maybe inverse..? not sure
+
+    return redshift 
+end
+
+function deterministic_redshift(metric::ADM_metric_container,
+    obs_fourposveloc::MVector{8,Float64},source_fourposveloc::MVector{8,Float64})
+
+    #fourposveloc stores variables as [t, x0, x1, x2, 1.0, dx0/dt...]
+
+    dtau_dt2_source = source_fourposveloc[5:8]'metric.numeric_metric[source_fourposveloc[1:4]]*source_fourposveloc[5:8]
+    dtau_dt2_obs = obs_fourposveloc[5:8]'metric.numeric_metric[source_fourposveloc[1:4]]*obs_fourposveloc[5:8]
+
+    redshift = sqrt(dtau_dt2_source/dtau_dt2_obs)
+
+    return redshift
+
+end
+
+
+#module end -.-.-.-.-.-.-
+end
+
+
+
+using Symbolics, StaticArrays, Plots, Colors, Images
 
 @variables x1::Real, x2::Real, x3::Real, x4::Real
 
@@ -448,7 +510,7 @@ sch_metric_representation = @SMatrix [
     0.0 0.0 0.0 sch_g_33
 ]
 
-function SCH_d0_scaler(allvector::Vector{MVector{8,Float64}},def::Float64 = -0.025)
+function SCH_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Vector{MVector{8,Float64}},def::Float64 = -0.025)
     N_rays = length(allvector)
     outp = zeros(Float64,N_rays)
     for i in 1:N_rays
@@ -457,7 +519,7 @@ function SCH_d0_scaler(allvector::Vector{MVector{8,Float64}},def::Float64 = -0.0
     return outp
 end
 
-function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
+function SCH_termination_cause(metric::ADM_raytracing.ADM_metric_container,coord_allvector::Vector{MVector{8, Float64}},
     current_indices::Vector{Int64})
     N_current = length(coord_allvector)
     global_indices_to_del = Vector{Int64}()
@@ -470,14 +532,43 @@ function SCH_termination_cause(coord_allvector::Vector{MVector{8, Float64}},
         end
     end
     return global_indices_to_del, local_indices_to_del
+end
+
+function SCH_CS_caster(metric::ADM_raytracing.ADM_metric_container,final_allvector::Vector{MVector{8, Float64}})
+
+    #just cheat using the conservation of angular momentum
+    N_rays = length(final_allvector)
+    phi = zeros(Float64,N_rays)
+    theta = zeros(Float64,N_rays)
+    for k in 1:N_rays
+        x = cos(final_allvector[k][3]) * sin(final_allvector[k][4])
+        y = sin(final_allvector[k][3]) * sin(final_allvector[k][4])
+        z = cos(final_allvector[k][4])
+
+        phi[k] = (atan(y,x) + pi) % (2pi)
+        theta[k] = acos(z/sqrt(x^2 + y^2 + z^2))
+    end
+
+    return phi, theta
 
 end
+
+function SCH_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvectors::Vector{MVector{8, Float64}},image::Matrix{RGBA{N0f8}})
+    for i in eachindex(image)
+        if final_allvectors[i][2] < 2.0 * 1.025
+            
+            image[i] = RGBA{N0f8}(0.0,0.0,0.0,1.0)
+        end
+    end
+    return image
+end
+
 
 SCH_ADM = ADM_raytracing.ADM_metric_container(sch_metric_representation,coordinates)
 
 #example of raytracing in SCH spacetime
 
-
+#=
 initial_position = [0.0,10.0,0.0,pi/2]
 initial_spatial_veloc = [0.7,0.2,0.0]
 init_guess = [@MVector [0.0,10.0,0.0,pi/2,0.0,0.2,0.8,0.0] for k in -10:10]
@@ -512,12 +603,17 @@ xlims!(-20, 20)
 ylims!(-20, 20)
 
 println("test")
+=#
 
-"""
 camera_veloc = @MVector [1.0,0.2,0.0,0.0]
 camera_pos = @MVector [0.0,15.0,0.0,pi/2]
 camera_front = @MVector [0.0, -1.0, 0.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
-rays_initial_allvector = ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up)
+
+N_x = 1200
+N_y = 1200
+rays_initial_allvector = ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.002,N_x,N_y)
 final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,rays_initial_allvector,6000,SCH_d0_scaler,SCH_termination_cause)
-println("test")"""
+test_image = ADM_raytracing.render_image(SCH_ADM,"raytracing/celestial_spheres/QUASI_CS.png",N_x,N_y,final_allvector,SCH_CS_caster,SCH_colorer)
+
+println("test")
