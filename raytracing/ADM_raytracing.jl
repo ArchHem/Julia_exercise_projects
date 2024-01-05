@@ -42,8 +42,9 @@ function numeric_array_generator(matrix,coordinates)
     new_functions = build_function(matrix, coordinates)
     
     allocating_matrix = @inline eval(new_functions[1])
+    mutating_matrix = @inline eval(new_functions[2])
     
-    return allocating_matrix
+    return allocating_matrix, mutating_matrix
 end
 
 function generate_christoffel_symbol(metric::SMatrix{4,4,Num,16},coordinates::SVector{4,Num})
@@ -160,8 +161,7 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
 
         u0_generator_output = MVector{8,Num}([([coordinates,[implicit_u0,u1,u2,u3]]...)...])
         
-
-        dx_spatial = (gamma_up * lower_spatial_u) ./ implicit_u0 .- beta_up
+        dx_spatial = (gamma_up * lower_spatial_u) ./ u0 .- beta_up
 
         dx_spatial .= simplify.(dx_spatial)
 
@@ -183,7 +183,7 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
                 gamma_up_deriv[k] = expand_derivatives(differential_operators[i](gamma_up[k]))
             end
             
-            du_spatial[i] = -alpha * implicit_u0 * alpha_deriv + lower_spatial_u'beta_up_deriv - 1/(2 * implicit_u0) * (lower_spatial_u'gamma_up_deriv*lower_spatial_u)
+            du_spatial[i] = -alpha * u0 * alpha_deriv + lower_spatial_u'beta_up_deriv - 1/(2 * u0) * (lower_spatial_u'gamma_up_deriv*lower_spatial_u)
         end
 
         du_spatial .= simplify.(du_spatial)
@@ -197,13 +197,13 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
         end
         
 
-        numeric_metric = numeric_array_generator(metric_representation,coordinates)
+        numeric_metric = numeric_array_generator(metric_representation,coordinates)[1]
 
-        inverse_numeric_metric = numeric_array_generator(inverse_sym_metric,coordinates)
+        inverse_numeric_metric = numeric_array_generator(inverse_sym_metric,coordinates)[1]
 
-        acceleration_function = numeric_array_generator(acceleration_vector,inputs)
+        acceleration_function = numeric_array_generator(acceleration_vector,inputs)[1]
         
-        numeric_u0 = numeric_array_generator(u0_generator_output,inputs)
+        numeric_u0 = numeric_array_generator(u0_generator_output,inputs)[2]
 
         T0 = typeof(numeric_metric)
         T1 = typeof(inverse_numeric_metric)
@@ -223,6 +223,7 @@ function integrate_ADM_geodesics_RK4_tracked(metric_binder::ADM_metric_container
         N_rays = length(allvectors)
         outp = Vector{MVector{8,Float64}}(undef,(N_rays,))
         Threads.@threads for i in 1:N_rays
+            metric_binder.numeric_u0(allvectors[i],allvectors[i])
             temp = metric_binder.numeric_acceleration(allvectors[i])
             for j in 1:8
                 @inbounds temp[j] = ifelse((isfinite(temp[j])), temp[j], 0.0)
@@ -268,6 +269,7 @@ function integrate_ADM_geodesics_RK4(metric_binder::ADM_metric_container,initial
         N_rays = length(allvectors)
         outp = Vector{MVector{8,Float64}}(undef,(N_rays,))
         Threads.@threads for i in 1:N_rays
+            metric_binder.numeric_u0(allvectors[i],allvectors[i])
             temp = metric_binder.numeric_acceleration(allvectors[i])
             for j in 1:8
                 @inbounds temp[j] = ifelse((isfinite(temp[j])), temp[j], 0.0)
@@ -475,7 +477,7 @@ SCH_ADM = ADM_raytracing.ADM_metric_container(sch_metric_representation,coordina
 
 #example of raytracing in SCH spacetime
 
-#=
+
 initial_position = [0.0,10.0,0.0,pi/2]
 initial_spatial_veloc = [0.7,0.2,0.0]
 init_guess = [@MVector [0.0,10.0,0.0,pi/2,0.0,0.2,0.8,0.0] for k in -10:10]
@@ -483,13 +485,13 @@ deviations = [@MVector [0.0,0.0,0.0,0.0,0.0,0.0,k*0.06,0.0] for k in -10:10]
 
 init_conditions = init_guess .+ deviations
 
-initial_allvector = SCH_ADM.numeric_u0.(init_conditions)
+SCH_ADM.numeric_u0.(init_conditions,init_conditions)
 
 const timesteps = 2000
-raytraced_coords = ADM_raytracing.integrate_ADM_geodesics_RK4_tracked(SCH_ADM,initial_allvector,timesteps,SCH_d0_scaler)
+raytraced_coords = ADM_raytracing.integrate_ADM_geodesics_RK4_tracked(SCH_ADM,init_conditions,timesteps,SCH_d0_scaler)
 n_rays = length(raytraced_coords[1])
 
-final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,initial_allvector,timesteps,SCH_d0_scaler,SCH_termination_cause)
+final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,init_conditions,timesteps,SCH_d0_scaler,SCH_termination_cause)
 
 r = zeros(Float64,n_rays,timesteps)
 phi = zeros(Float64,n_rays,timesteps)
@@ -510,12 +512,12 @@ xlims!(-20, 20)
 ylims!(-20, 20)
 
 println("test")
-=#
 
+"""
 camera_veloc = @MVector [1.0,0.2,0.0,0.0]
 camera_pos = @MVector [0.0,15.0,0.0,pi/2]
 camera_front = @MVector [0.0, -1.0, 0.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
 rays_initial_allvector = ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up)
 final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,rays_initial_allvector,6000,SCH_d0_scaler,SCH_termination_cause)
-println("test")
+println("test")"""
