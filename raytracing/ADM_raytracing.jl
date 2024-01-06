@@ -511,11 +511,13 @@ sch_metric_representation = @SMatrix [
     0.0 0.0 0.0 sch_g_33
 ]
 
-function SCH_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Vector{MVector{8,Float64}},def::Float64 = -0.025)
+function SCH_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Vector{MVector{8,Float64}},def::Float64 = -0.04)
     N_rays = length(allvector)
-    outp = zeros(Float64,N_rays)
+    outp = def * ones(Float64,N_rays)
     for i in 1:N_rays
-        outp[i] = def
+        if sin(allvector[i][4]) < 0.1
+            outp[i] = def/10
+        end
     end
     return outp
 end
@@ -607,14 +609,14 @@ println("test")
 =#
 
 camera_veloc = @MVector [1.0,0.2,0.0,0.0]
-camera_pos = @MVector [0.0,15.0,0.0,pi/2]
+camera_pos = @MVector [0.0,15.0,pi,pi/2]
 camera_front = @MVector [0.0, -1.0, 0.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
 
-N_x = 400
-N_y = 200
-rays_initial_allvector = ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006,N_x,N_y)
-final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,rays_initial_allvector,6000,SCH_d0_scaler,SCH_termination_cause)
-test_image = ADM_raytracing.render_image(SCH_ADM,"raytracing/celestial_spheres/tracker.png",N_x,N_y,final_allvector,SCH_CS_caster,SCH_colorer)
+N_x = 1600
+N_y = 800
+rays_initial_allvector = ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006/4,N_x,N_y)
+final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,rays_initial_allvector,9000,SCH_d0_scaler,SCH_termination_cause)
+test_image = ADM_raytracing.render_image(SCH_ADM,"raytracing/celestial_spheres/imaginary_LEO.png",N_x,N_y,final_allvector,SCH_CS_caster,SCH_colorer)
 
 println("test")
