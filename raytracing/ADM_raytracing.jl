@@ -85,12 +85,12 @@ function generate_christoffel_symbol(metric::SMatrix{4,4,Num,16},coordinates::SV
         end
     end
 
-    println("Beginning simplification of Christoffel Symbols.")
+    println("Beginning computation of Christoffel Symbols.")
 
     for u in ProgressBar(1:4)
         for j in 1:4
             for i in 1:j
-                temp_CH_symbols[u][j,i] = simplify(temp_CH_symbols[u][i,j])
+                temp_CH_symbols[u][j,i] = temp_CH_symbols[u][i,j]
             end
         end
     end
@@ -141,8 +141,10 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
         gamma = metric_representation[2:4,2:4]
         beta = metric_representation[1,2:4]
         gamma_up = inv(gamma)
-        beta_up = simplify(gamma_up * beta)
-        alpha = simplify(sqrt(beta'beta_up - metric_representation[1,1]))
+        beta_up = gamma_up * beta
+        alpha = sqrt(beta'beta_up - metric_representation[1,1])
+
+        println("Quasi metric quantities computed.")
 
         # https://iopscience.iop.org/article/10.3847/1538-4365/aac9ca/pdf?fbclid=IwAR0pORzJb6EvCVdTIWo32F6wxhdd3_eQE_-x8afe94Y8dY_2IH_NuNcPiD0
 
@@ -163,7 +165,7 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
         
         dx_spatial = (gamma_up * lower_spatial_u) ./ u0 .- beta_up
 
-        dx_spatial .= simplify.(dx_spatial)
+        #dx_spatial .= simplify.(dx_spatial)
 
         acceleration_vector[2:4] = dx_spatial
 
@@ -186,7 +188,7 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
             du_spatial[i] = -alpha * u0 * alpha_deriv + lower_spatial_u'beta_up_deriv - 1/(2 * u0) * (lower_spatial_u'gamma_up_deriv*lower_spatial_u)
         end
 
-        du_spatial .= simplify.(du_spatial)
+        #du_spatial .= simplify.(du_spatial)
 
         acceleration_vector[6:8] = du_spatial
 

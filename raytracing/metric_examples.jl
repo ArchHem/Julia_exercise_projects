@@ -1,3 +1,4 @@
+include("./ADM_raytracing.jl")
 using Symbolics, StaticArrays, Plots, Colors, Images, .ADM_raytracing
 
 @variables x1::Real, x2::Real, x3::Real, x4::Real
@@ -29,7 +30,7 @@ delta = x2^2 - r_s * x2 + a^2
 kerr_g_00 = -(1 - r_s * x2 / su) * c^2
 kerr_g_20 = 2 * r_s * x2 * a * sin(x4)^2 * c / su^2
 kerr_g_11 = su/delta 
-kerr_g_22 = (x2^2 + a^2 + r_s * x_2 * a^2 * sin(x4)^2 / su) * sin(x4)^2
+kerr_g_22 = (x2^2 + a^2 + r_s * x2 * a^2 * sin(x4)^2 / su) * sin(x4)^2
 kerr_g_33 = su
 
 kerr_metric_representation = @SMatrix [
