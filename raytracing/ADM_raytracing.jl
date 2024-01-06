@@ -396,7 +396,6 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     println("Your selected horizontal radian range is: "*string(alpha_h))
     println("Your selected vertical, corrected radian range is: "*string(alpha_v))
     
-
     meshgrid_a = ones(N_y) .* a_array'
     meshgrid_b = b_array .* ones(N_x)'
 
@@ -616,6 +615,6 @@ N_x = 400
 N_y = 200
 rays_initial_allvector = ADM_raytracing.camera_rays_generator(SCH_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006,N_x,N_y)
 final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(SCH_ADM,rays_initial_allvector,6000,SCH_d0_scaler,SCH_termination_cause)
-test_image = ADM_raytracing.render_image(SCH_ADM,"raytracing/celestial_spheres/QUASI_CS.png",N_x,N_y,final_allvector,SCH_CS_caster,SCH_colorer)
+test_image = ADM_raytracing.render_image(SCH_ADM,"raytracing/celestial_spheres/tracker.png",N_x,N_y,final_allvector,SCH_CS_caster,SCH_colorer)
 
 println("test")
