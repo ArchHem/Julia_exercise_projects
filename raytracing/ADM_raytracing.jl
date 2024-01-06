@@ -390,10 +390,12 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     b_array = collect(LinRange(0,1,N_y))
 
     alpha_h = angular_pixellation * N_x 
-    alpha_v = angular_pixellation * N_y
+    #the vertical angle must be chosen st. tan(a_h)/tan(a_v) = N_x/N_y
+    alpha_v = 2 * acot(N_x * cot(alpha_h/2)/N_y)
 
+    println("Your selected horizontal radian range is: "*string(alpha_h))
     println("Your selected vertical, corrected radian range is: "*string(alpha_v))
-    println("Your selected horizontal, corrected radian range is: "*string(alpha_h))
+    
 
     meshgrid_a = ones(N_y) .* a_array'
     meshgrid_b = b_array .* ones(N_x)'
