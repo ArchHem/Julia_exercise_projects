@@ -2,7 +2,7 @@
 Number of exercises in Julia.
 
 
-##Machine learning - analyzing the MNIST dataset using home-built `neural_network struct`.
+## Machine learning - analyzing the MNIST dataset using home-built `neural_network struct`.
 
 -Home-built, medium-performance feed-forward neural network implementation using base Julia library
 
