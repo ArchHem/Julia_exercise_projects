@@ -567,7 +567,7 @@ init_allvectors = planar_camera_ray_generator(test_container,N_x,N_y,0.005,[0.0,
 
 initial_allvector, final_allvector = integrate_geodesics(test_integrator,init_allvectors,30000)
 
-image = standard_CS_renderer("raytracing/celestial_spheres/CS_3.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
+image = standard_CS_renderer("raytracing/celestial_spheres/tracker.png",test_container,final_allvector,N_x,N_y,SCH_colorer)
 println("N/A")
-save("raytracing/renders/HP_test_06.png",image)
+save("raytracing/renders/HP_test_00.png",image)
 
