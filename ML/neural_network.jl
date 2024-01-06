@@ -179,7 +179,7 @@ function batch_update_network(input_vectors::Vector{Vector{Float64}},labels::Vec
     N_input_vecs = length(input_vectors)
     sum_d_weight, sum_bias_updates = backpropegate(input_vectors[1],labels[1],NN_instance)
 
-    for k in 2:N_input_vecs
+    Threads.@threads for k in 2:N_input_vecs
         temp_weight, temp_bias = backpropegate(input_vectors[k],labels[k],NN_instance)
         sum_d_weight .= sum_d_weight .+ temp_weight
         sum_bias_updates .= sum_bias_updates .+ temp_bias
