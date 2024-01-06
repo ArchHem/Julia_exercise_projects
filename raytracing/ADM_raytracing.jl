@@ -192,6 +192,8 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
 
         acceleration_vector[6:8] = du_spatial
 
+        
+
         inputs = zeros(Num,8)
         for i in 1:4
             inputs[i] = coordinates[i]
@@ -225,7 +227,9 @@ function integrate_ADM_geodesics_RK4_tracked(metric_binder::ADM_metric_container
         N_rays = length(allvectors)
         outp = Vector{MVector{8,Float64}}(undef,(N_rays,))
         Threads.@threads for i in 1:N_rays
+            
             metric_binder.numeric_u0(allvectors[i],allvectors[i])
+            
             temp = metric_binder.numeric_acceleration(allvectors[i])
             for j in 1:8
                 @inbounds temp[j] = ifelse((isfinite(temp[j])), temp[j], 0.0)
@@ -270,6 +274,7 @@ function integrate_ADM_geodesics_RK4(metric_binder::ADM_metric_container,initial
     function multi_acc(allvectors::Vector{MVector{8,Float64}})
         N_rays = length(allvectors)
         outp = Vector{MVector{8,Float64}}(undef,(N_rays,))
+        
         Threads.@threads for i in 1:N_rays
             metric_binder.numeric_u0(allvectors[i],allvectors[i])
             temp = metric_binder.numeric_acceleration(allvectors[i])

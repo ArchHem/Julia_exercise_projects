@@ -22,15 +22,15 @@ sch_metric_representation = @SMatrix [
     0.0 0.0 0.0 sch_g_33
 ]
 
-J = 0.9
+J = 0.5
 a = J/(M*c)
 su = x2^2 + a^2 * cos(x4)^2
 delta = x2^2 - r_s * x2 + a^2
 
 kerr_g_00 = -(1 - r_s * x2 / su) * c^2
-kerr_g_20 = 2 * r_s * x2 * a * sin(x4)^2 * c / su^2
+kerr_g_20 = - r_s * x2 * a * sin(x4)^2 * c / su^2
 kerr_g_11 = su/delta 
-kerr_g_22 = (x2^2 + a^2 + r_s * x2 * a^2 * sin(x4)^2 / su) * sin(x4)^2
+kerr_g_22 = (x2^2 + a^2 + (r_s * x2 * a^2 * sin(x4)^2)/su ) * sin(x4)^2
 kerr_g_33 = su
 
 kerr_metric_representation = @SMatrix [
@@ -42,11 +42,11 @@ kerr_metric_representation = @SMatrix [
 
 
 
-function SCH_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Vector{MVector{8,Float64}},def::Float64 = -0.04)
+function SCH_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Vector{MVector{8,Float64}},def::Float64 = -0.025)
     N_rays = length(allvector)
     outp = def * ones(Float64,N_rays)
     for i in 1:N_rays
-        if sin(allvector[i][4]) < 0.1
+        if sin(allvector[i][4]) < 0.1 || allvector[i][2] < 2.5
             outp[i] = def/10
         end
     end
@@ -73,9 +73,9 @@ function KERR_termination_cause(metric::ADM_raytracing.ADM_metric_container,coor
     N_current = length(coord_allvector)
     global_indices_to_del = Vector{Int64}()
     local_indices_to_del = Vector{Int64}()
-    r_event = 1 + sqrt(1-0.9^2)
+    r_event = 1 + sqrt(1-0.5^2)
     for i in 1:N_current
-        if coord_allvector[i][2] < r_event * 1.025 || coord_allvector[i][2] > 30.0
+        if coord_allvector[i][2] < r_event * 1.04 || coord_allvector[i][2] > 30.0
             push!(global_indices_to_del,current_indices[i])
             push!(local_indices_to_del,i)
         end
@@ -113,9 +113,9 @@ function SCH_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvector
 end
 
 function KERR_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvectors::Vector{MVector{8, Float64}},image::Matrix{RGBA{N0f8}})
-    r_event = 1 + sqrt(1-0.9^2)
+    r_event = 1 + sqrt(1-0.5^2)
     for i in eachindex(image)
-        if final_allvectors[i][2] < r_event * 1.025
+        if final_allvectors[i][2] < r_event * 1.04
             
             image[i] = RGBA{N0f8}(0.0,0.0,0.0,1.0)
         end
