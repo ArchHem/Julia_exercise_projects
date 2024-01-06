@@ -11,3 +11,6 @@ Number of exercises in Julia.
 -main `struct` capable of constructing any feed-forward network architecture
 
 -Potential future improvements include implementing other gradient-descent methods such as ADAM, and type declaration in main `struct`, or symbolic differention using `Symbolics.jl`, to achieve high performance
+
+![ML_training performance](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/b84aff0b-d320-4706-90c8-5ed066b47079)
+
