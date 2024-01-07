@@ -127,7 +127,8 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
 
     
 
-    function ADM_metric_container(metric_representation::SMatrix{4,4,Num,16},coordinates::SVector{4,Num},null_geodesic::Bool = true)
+    function ADM_metric_container(metric_representation::SMatrix{4,4,Num,16},coordinates::SVector{4,Num},
+        null_geodesic::Bool = true, do_simplify::Bool = false)
 
         chr_symbols = generate_christoffel_symbol(metric_representation,coordinates)
         inverse_sym_metric = inv(metric_representation)
@@ -144,7 +145,7 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
         beta_up = gamma_up * beta
         alpha = sqrt(beta'beta_up - metric_representation[1,1])
 
-        println("Quasi metric quantities computed.")
+        
 
         # https://iopscience.iop.org/article/10.3847/1538-4365/aac9ca/pdf?fbclid=IwAR0pORzJb6EvCVdTIWo32F6wxhdd3_eQE_-x8afe94Y8dY_2IH_NuNcPiD0
 
@@ -158,14 +159,21 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
         all_lower_u = [u0, u1, u2, u3]
 
         lower_spatial_u = [u1, u2, u3]
+        
 
         implicit_u0 = sqrt(lower_spatial_u'gamma_up*lower_spatial_u + epsilon)/alpha
+
+        if do_simplify
+            implicit_u0 = simplify(implicit_u0)
+        end
 
         u0_generator_output = MVector{8,Num}([([coordinates,[implicit_u0,u1,u2,u3]]...)...])
         
         dx_spatial = (gamma_up * lower_spatial_u) ./ u0 .- beta_up
 
-        #dx_spatial .= simplify.(dx_spatial)
+        if do_simplify
+            dx_spatial .= simplify.(dx_spatial)
+        end
 
         acceleration_vector[2:4] = dx_spatial
 
@@ -188,11 +196,13 @@ struct ADM_metric_container{TNumMetric<:Function,TInverseNumMetric<:Function,TNu
             du_spatial[i] = -alpha * u0 * alpha_deriv + lower_spatial_u'beta_up_deriv - 1/(2 * u0) * (lower_spatial_u'gamma_up_deriv*lower_spatial_u)
         end
 
-        #du_spatial .= simplify.(du_spatial)
+        if do_simplify
+            du_spatial .= simplify.(du_spatial)
+        end
 
         acceleration_vector[6:8] = du_spatial
 
-        
+        println("Quasi metric quantities computed.")
 
         inputs = zeros(Num,8)
         for i in 1:4
@@ -411,11 +421,13 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
     for k in eachindex(meshgrid_a)
         a = meshgrid_a[k]
         b = meshgrid_b[k]
-        C = sqrt(1 + (2b-1)^2 * tan(alpha_v/2)^2 + (2a-1)^2 * tan(alpha_h/2)^2 - l_eps)
+        C = sqrt(1 + (2b-1)^2 * tan(alpha_v/2)^2 + (2a-1)^2 * tan(alpha_h/2)^2 + l_eps)
         
         temp = C .* e0 - e1 - (2b-1) * tan(alpha_v/2) .* e2 - (2a-1) * tan(alpha_h/2) .* e3
-        temp .= temp./temp[1]
+        
         lowered_momenta = local_metric * temp
+        println(temp'lowered_momenta)
+        lowered_momenta = lowered_momenta/(lowered_momenta'initial_fourvelocity)
         preliminary_lower_momenta[k] = lowered_momenta
         
         
@@ -462,17 +474,13 @@ function render_image(metric::ADM_metric_container,image_path::String,N_x_cam::I
 
 end
 
-function integrated_redshift_ratio(metric::ADM_metric_container,
-    final_allvector::MVector{8,Float64},initial_allvector::MVector{8,Float64})
 
-    #can't take into account the source moving when used in conjungtion with the current ADM integrator
+function camera_redshift(metric::ADM_metric_container,
+    final_allvector::MVector{8,Float64},camera_fourveloc::MVector{4,Float64})
+    #assumes that the initial "energy", v_i p^i = 1
+    redshift = camera_fourveloc'final_allvector[5:8]
 
-    p_final = metric.numeric_inverse_metric(final_allvector[1:4]) * final_allvector[5:8]
-    p_initial = metric.numeric_inverse_metric(initial_allvector[1:4]) * initial_allvector[5:8]
-
-    redshift = p_final[1]/p_initial[1] #or maybe inverse..? not sure
-
-    return redshift 
+    return redshift
 end
 
 function deterministic_redshift(metric::ADM_metric_container,
