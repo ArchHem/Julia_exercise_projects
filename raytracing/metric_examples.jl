@@ -22,7 +22,7 @@ sch_metric_representation = @SMatrix [
     0.0 0.0 0.0 sch_g_33
 ]
 
-J = 0.5
+J = 0.95
 a = J/(M*c)
 su = x2^2 + a^2 * cos(x4)^2
 delta = x2^2 - r_s * x2 + a^2
@@ -46,8 +46,8 @@ function SCH_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Ve
     N_rays = length(allvector)
     outp = def * ones(Float64,N_rays)
     for i in 1:N_rays
-        if sin(allvector[i][4]) < 0.1 
-            outp[i] = def/5
+        if sin(allvector[i][4])^2 * (allvector[i][2]^2 + 0.95^2) < 0.075^2
+            outp[i] = def/160
         end
     end
     return outp
@@ -73,7 +73,7 @@ function KERR_termination_cause(metric::ADM_raytracing.ADM_metric_container,coor
     N_current = length(coord_allvector)
     global_indices_to_del = Vector{Int64}()
     local_indices_to_del = Vector{Int64}()
-    r_event = 1 + sqrt(1-0.5^2)
+    r_event = 1 + sqrt(1-0.95^2)
     for i in 1:N_current
         if coord_allvector[i][2] < r_event * 1.02 || coord_allvector[i][2] > 30.0
             push!(global_indices_to_del,current_indices[i])
@@ -113,7 +113,7 @@ function SCH_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvector
 end
 
 function KERR_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvectors::Vector{MVector{8, Float64}},image::Matrix{RGBA{N0f8}})
-    r_event = 1 + sqrt(1-0.5^2)
+    r_event = 1 + sqrt(1-0.95^2)
     for i in eachindex(image)
         if final_allvectors[i][2] < r_event * 1.02
             
@@ -124,17 +124,17 @@ function KERR_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvecto
 end
 
 
-KERR_ADM = ADM_raytracing.ADM_metric_container(kerr_metric_representation,coordinates,true,true)
+KERR_ADM = ADM_raytracing.ADM_metric_container(kerr_metric_representation,coordinates,true,false)
 
 camera_veloc = @MVector [1.0,0.2,0.0,0.0]
 camera_pos = @MVector [0.0,15.0,pi,pi/2]
 camera_front = @MVector [0.0, -1.0, 0.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
 
-N_x = 400
-N_y = 200
-rays_initial_allvector = ADM_raytracing.camera_rays_generator(KERR_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006,N_x,N_y)
-final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(KERR_ADM,rays_initial_allvector,9000,SCH_d0_scaler,KERR_termination_cause)
+N_x = 1600
+N_y = 800
+rays_initial_allvector = ADM_raytracing.camera_rays_generator(KERR_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006/4,N_x,N_y)
+final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(KERR_ADM,rays_initial_allvector,100000,SCH_d0_scaler,KERR_termination_cause)
 test_image = ADM_raytracing.render_image(KERR_ADM,"raytracing/celestial_spheres/imaginary_LEO.png",N_x,N_y,final_allvector,SCH_CS_caster,KERR_colorer)
 
 println("test")

@@ -426,8 +426,8 @@ function camera_rays_generator(metric_binder::ADM_metric_container,
         temp = C .* e0 - e1 - (2b-1) * tan(alpha_v/2) .* e2 - (2a-1) * tan(alpha_h/2) .* e3
         
         lowered_momenta = local_metric * temp
-        println(temp'lowered_momenta)
-        lowered_momenta = lowered_momenta/(lowered_momenta'initial_fourvelocity)
+        
+        lowered_momenta = -lowered_momenta/(lowered_momenta'initial_fourvelocity)
         preliminary_lower_momenta[k] = lowered_momenta
         
         
