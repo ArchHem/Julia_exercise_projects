@@ -135,6 +135,6 @@ N_x = 1600
 N_y = 800
 rays_initial_allvector = ADM_raytracing.camera_rays_generator(KERR_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006/4,N_x,N_y)
 final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(KERR_ADM,rays_initial_allvector,100000,SCH_d0_scaler,KERR_termination_cause)
-test_image = ADM_raytracing.render_image(KERR_ADM,"raytracing/celestial_spheres/imaginary_LEO.png",N_x,N_y,final_allvector,SCH_CS_caster,KERR_colorer)
+test_image = ADM_raytracing.render_image(KERR_ADM,"raytracing/celestial_spheres/tracker.png",N_x,N_y,final_allvector,SCH_CS_caster,KERR_colorer)
 
 println("test")
