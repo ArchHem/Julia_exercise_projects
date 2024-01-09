@@ -25,7 +25,12 @@ Example renders:
 
 ![ADM_Imaginary_LEO](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/adbb68be-ef65-49ed-87d4-9d558967faac)
 
+### Kerr Blackhole inside the same imaginary low-orbit texture as the Schwarschild one
+![ADM_KERR_high_res](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/57496b18-d90f-47f8-818f-be4619b9bf1f)
 
+### Kerr blackhole inside same checkerboard texture
+
+![ADM_KERR_tracker](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/93f5792d-22de-42c1-95ff-713e59157573)
 
 ## Machine learning - analyzing the MNIST dataset using home-built `neural_network struct`.
 
