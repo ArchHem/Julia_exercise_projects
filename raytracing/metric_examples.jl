@@ -40,7 +40,70 @@ kerr_metric_representation = @SMatrix [
     0.0 0.0 0.0 kerr_g_33
 ]
 
+v_drive = 0.5
+x_s = v_drive * (x1 + 15)
+v_s = v_drive
 
+r_alc = sqrt((x2-x_s)^2 + x3^2 + x4^2)
+R = 5
+o = 3
+f_r = (tanh(o*(r_alc + R)) - tanh(o*(r_alc - R)))/(2*tanh(o * R))
+
+alc_00 = (v_s^2 * f_r^2 - 1 )
+alc_01 = -v_s * f_r
+
+
+alc_metric_repr = @SMatrix [
+    alc_00 alc_01 0.0 0.0;
+    alc_01 1.0 0.0 0.0;
+    0.0 0.0 1.0 0.0;
+    0.0 0.0 0.0 1.0]
+
+function ALC_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Vector{MVector{8,Float64}},def::Float64 = -0.025)
+    N_rays = length(allvector)
+    outp = def * ones(Float64,N_rays)
+    return outp
+
+end
+
+function ALC_termination_cause(metric::ADM_raytracing.ADM_metric_container,coord_allvector::Vector{MVector{8, Float64}},
+    current_indices::Vector{Int64})
+    N_current = length(coord_allvector)
+    global_indices_to_del = Vector{Int64}()
+    local_indices_to_del = Vector{Int64}()
+    
+    for i in 1:N_current
+        if coord_allvector[i][3]^2 + coord_allvector[i][4]^2 > 40^2 
+            push!(global_indices_to_del,current_indices[i])
+            push!(local_indices_to_del,i)
+        end
+    end
+    return global_indices_to_del, local_indices_to_del
+end
+
+function ALC_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvectors::Vector{MVector{8, Float64}},image::Matrix{RGBA{N0f8}})
+    
+    return image
+end
+
+function ALC_CS_caster(metric::ADM_raytracing.ADM_metric_container,final_allvector::Vector{MVector{8, Float64}})
+
+    #assume that the local metric is sufficently flat
+    N_rays = length(final_allvector)
+    phi = zeros(Float64,N_rays)
+    theta = zeros(Float64,N_rays)
+    for k in 1:N_rays
+        x = final_allvector[k][6]
+        y = final_allvector[k][7]
+        z = final_allvector[k][8]
+
+        phi[k] = (atan(y,x) + pi + pi/2) % (2pi)
+        theta[k] = acos(z/sqrt(x^2 + y^2 + z^2))
+    end
+
+    return phi, theta
+
+end
 
 function SCH_d0_scaler(metric::ADM_raytracing.ADM_metric_container,allvector::Vector{MVector{8,Float64}},def::Float64 = -0.025)
     N_rays = length(allvector)
@@ -124,17 +187,17 @@ function KERR_colorer(metric::ADM_raytracing.ADM_metric_container,final_allvecto
 end
 
 
-KERR_ADM = ADM_raytracing.ADM_metric_container(kerr_metric_representation,coordinates,true,false)
+ALC_ADM = ADM_raytracing.ADM_metric_container(alc_metric_repr,coordinates,true,false)
 
-camera_veloc = @MVector [1.0,0.2,0.0,0.0]
-camera_pos = @MVector [0.0,15.0,pi,pi/2]
-camera_front = @MVector [0.0, -1.0, 0.0, 0.0]
+camera_veloc = @MVector [1.0,0.0,0.0,0.0]
+camera_pos = @MVector [0.0,0.0,-15.0,0.0]
+camera_front = @MVector [0.0, 0.0, 1.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
 
-N_x = 1600
-N_y = 800
-rays_initial_allvector = ADM_raytracing.camera_rays_generator(KERR_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006/4,N_x,N_y)
-final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(KERR_ADM,rays_initial_allvector,100000,SCH_d0_scaler,KERR_termination_cause)
-test_image = ADM_raytracing.render_image(KERR_ADM,"raytracing/celestial_spheres/tracker.png",N_x,N_y,final_allvector,SCH_CS_caster,KERR_colorer)
+N_x = 800
+N_y = 400
+rays_initial_allvector = ADM_raytracing.camera_rays_generator(ALC_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006/2,N_x,N_y)
+final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(ALC_ADM,rays_initial_allvector,120000,ALC_d0_scaler,ALC_termination_cause)
+test_image = ADM_raytracing.render_image(ALC_ADM,"raytracing/celestial_spheres/imaginary_LEO.png",N_x,N_y,final_allvector,ALC_CS_caster,ALC_colorer)
 
 println("test")
