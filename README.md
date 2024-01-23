@@ -32,6 +32,11 @@ Example renders:
 
 ![ADM_KERR_tracker](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/93f5792d-22de-42c1-95ff-713e59157573)
 
+### Alcubierre metric (position chosen such that null geodesics in flat space would reach the "buble" at the time of taking the photo)
+
+![ALC_tracker_test_HQ](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/71d61bce-074a-49f1-bca3-49963f17b26f)
+
+
 ## Machine learning - analyzing the MNIST dataset using home-built `neural_network struct`.
 
 -Home-built, medium-performance feed-forward neural network implementation using base Julia library
