@@ -1,6 +1,14 @@
 # Julia_exercise_projects
 Number of exercises in Julia.
 
+## Stochastic Calculus Projects - Heavy WIP
+
+### Brownian motion and analysis
+
+Example of 'integrated' Brownian paths in one dimension.
+![BrownianMotion](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/943d531b-9e2f-4440-9a83-6f0c4c825979)
+
+
 ## Quasi-general raycasting in General Relatvity
 
 -Home built, high-performace GR raycaster and visualizer, centered around the ADM formalism of General Relativity
