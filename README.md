@@ -5,7 +5,7 @@ Number of exercises in Julia.
 
 ### Brownian motion and analysis
 
-Example of 'integrated' Brownian paths in one dimension ($\dy \propto N(0,1)$.
+Example of 'integrated' Brownian paths in one dimension ($\Delta y \propto N(0,1)$.
 ![BrownianMotion](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/943d531b-9e2f-4440-9a83-6f0c4c825979)
 
 
