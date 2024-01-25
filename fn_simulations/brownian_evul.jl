@@ -12,7 +12,7 @@ function integrate_brownian_motions(input::BrownianMotion)
     time_array = collect(1:input.NTimeSteps)
     lvalues = zeros(Float64,input.NScenarios)
     total_dat = zeros(Float64,(input.NScenarios,input.NTimeSteps))
-    for t in 1:input.NTimeSteps
+    for t in ProgressBar(1:input.NTimeSteps)
         total_dat[:,t] = lvalues
         lvalues += sqrt(input.dt) * input.sigma * randn(Float64,input.NScenarios)
         
