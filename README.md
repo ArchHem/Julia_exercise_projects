@@ -8,6 +8,13 @@ Number of exercises in Julia.
 Example of 'integrated' Brownian paths in one dimension ($\Delta y \propto N(0,1)$.
 ![BrownianMotion](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/943d531b-9e2f-4440-9a83-6f0c4c825979)
 
+### Example of 1D brownian motion distribution.
+
+Since in 1 dimensions, there exists a representation for the PDF of the displacements of brownian paths, we can compare our results to such. Such a PDF is in fact a normal one, with $\propto N(\mu = 0,\sigma = \sqrt{T})$ where T is the total intergated time domain.
+
+![final_positions_pdf](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/07863b1f-7797-4e25-821e-62ccc0eccf29)
+
+
 
 ## Quasi-general raycasting in General Relatvity
 
