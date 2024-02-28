@@ -6,14 +6,6 @@ struct BlackScholesModel
     NSituations::Int64
     #volatitility
     sigma::Float64
-    #drift rate
+    #drift rate: analogous to underlying mean interest
     mu::Float64
-end
-
-function SimulateBS(input::BlackScholesModel)
-
-    logsteps = zeros(Float64,(input.NSituations, input.NTimeSteps))
-    for t in 1:input.NTimeSteps
-
-    end
 end
