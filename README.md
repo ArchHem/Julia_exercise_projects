@@ -3,6 +3,13 @@ Number of exercises in Julia.
 
 ## Stochastic Calculus Projects - Heavy WIP
 
+### Basic Black-Scholes Monte Carlo Simulation
+
+![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
+
+The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. 
+
+
 ### Brownian motion and analysis
 
 Example of 'integrated' Brownian paths in one dimension ($\Delta y \propto N(0,1)$.
