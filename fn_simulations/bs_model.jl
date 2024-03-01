@@ -8,6 +8,8 @@ struct BlackScholesModel
     sigma::Float64
     #drift rate: analogous to underlying mean interest
     mu::Float64
+    #interest rate of underyling, risk-free bond
+    r::Float64
 end
 
 function simulate_system(system::BlackScholesModel,initial_price::Float64)
@@ -45,9 +47,92 @@ function batch_simulator(system::BlackScholesModel,initial_price::Float64,N_batc
     return all_output
 end
 
-#since we are recording all timesteps, we can do something like this
+#since we are recording all timesteps, we can instead propegate only up to a certain time, without tracking.
 
-test = BlackScholesModel(0.01,1000,1000,0.001,0.001)
+function simulate_system_no_track(system::BlackScholesModel,initial_price::Float64)
+    sigma::Float64 = system.sigma
+    mu::Float64 = system.mu
+    batch_output = zeros((system.NSituationsBatch, 2))
+
+    @. batch_output[:,1] = initial_price
+
+    N_simuls = system.NSituationsBatch
+    dt::Float64 = system.dt
+    #time integration part
+    new_price = initial_price * ones(N_simuls)
+    for i in 2:system.NTimeSteps
+        noise = @. sqrt(dt) * randn(N_simuls)
+        all_drift = @. exp((mu - 0.5 * sigma^2) * dt + sigma * noise)
+        @. new_price = new_price * all_drift
+        
+    end
+    batch_output[:,2] = new_price
+    return batch_output
+end
+
+function batch_simulator_no_track(system::BlackScholesModel,initial_price::Float64,N_batches::Int64 = 20)
+    N_simuls = system.NSituationsBatch
+    
+    
+    all_output = Array{Float64}(undef,(N_simuls * N_batches, 2))
+    all_output[:,1] .= initial_price
+
+
+    #multithread - no race condition due to preallocation
+    @Threads.threads for k in ProgressBar(0:N_batches-1)
+        local_batch_output = simulate_system(system,initial_price)
+        
+        @. all_output[k*N_simuls+1:(k+1)*N_simuls,2] = local_batch_output[:,2]
+
+    end
+    return all_output
+end
+
+
+function evaluate_call_position_BS(K::Float64,system::BlackScholesModel,initial_price::Float64,N_batches::Int64 = 20,confidence_level::Float64 = 0.95)
+    #simulate system
+    total_time = system.dt * system.NTimeSteps
+    final_prices = batch_simulator_no_track(system,initial_price,N_batches)[:,2]
+
+    #we represent the "backward" propegated interest on the risk-free bond to adjust the potential _gain_ of the call
+    adjusted_payout = exp(-total_time * system.r) .* (final_prices .- K)
+
+    mean_payoff = mean(adjusted_payout)
+
+    #calculate CVAR using sorting and selecting worst case scenarios
+
+    #realistically, we would bin the 
+    worst_to_best = sort(adjusted_payout)
+
+    cut_index = ceil(Int64, (1-confidence_level) * length(worst_to_best))
+
+    mean_worst_case_loss = mean(worst_to_best[1:cut_index+1])
+
+    return mean_payoff, mean_worst_case_loss
+end
+
+function evaluate_put_position_BS(K::Float64,system::BlackScholesModel,initial_price::Float64,N_batches::Int64 = 20,confidence_level::Float64 = 0.95)
+    #simulate system
+    total_time = system.dt * system.NTimeSteps
+    final_prices = batch_simulator_no_track(system,initial_price,N_batches)[:,2]
+
+    #we represent the "backward" propegated interest on the risk-free bond to adjust the potential _gain_ of the call
+    adjusted_payout = exp(-total_time * system.r) .* (K .-final_prices)
+
+    mean_payoff = mean(adjusted_payout)
+    #calculate CVAR using sorting and selecting worst case scenarios
+
+    worst_to_best = sort(adjusted_payout)
+
+    cut_index = ceil(Int64, (1-confidence_level) * length(worst_to_best))
+
+    mean_worst_case_loss = mean(worst_to_best[1:cut_index+1])
+
+    return mean_payoff, mean_worst_case_loss
+end
+
+#conditions reminiscent of the past two decade - brute-guessed numbers
+test = BlackScholesModel(0.01,1000,1000,0.14,0.04,0.03)
 simulated_movements = batch_simulator(test,1000.0,20)
 
 
