@@ -29,6 +29,8 @@ CVaR quantifies the average expected losses beyond a certain confidence level. I
 
 The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%.
 
+In case of our simple BS model, this is largely irrelevant though: any returns, as we see, will be normally distributed and thus a simulation, strictly speaking, will not be needed. 
+
 
 
 ## Quasi-general raycasting in General Relatvity
