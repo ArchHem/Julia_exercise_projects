@@ -60,9 +60,11 @@ function simulate_system_no_track(system::BlackScholesModel,initial_price::Float
     dt::Float64 = system.dt
     #time integration part
     new_price = initial_price * ones(N_simuls)
+    cdrift = (mu - 0.5 * sigma^2) * dt
+    #alternatively, use log decomposition, along with cumsum - may speed things up.
     for i in 2:system.NTimeSteps
         noise = @. sqrt(dt) * randn(N_simuls)
-        all_drift = @. exp((mu - 0.5 * sigma^2) * dt + sigma * noise)
+        all_drift = @. exp(cdrift + sigma * noise)
         @. new_price = new_price * all_drift
         
     end
@@ -90,25 +92,26 @@ end
 
 
 function evaluate_call_position_BS(K::Float64,system::BlackScholesModel,initial_price::Float64,N_batches::Int64 = 20,confidence_level::Float64 = 0.95)
-    #simulate system
+    #simulate system - rest of algorithm can be used for any simulated result, not just BS.
     total_time = system.dt * system.NTimeSteps
     final_prices = batch_simulator_no_track(system,initial_price,N_batches)[:,2]
 
     #we represent the "backward" propegated interest on the risk-free bond to adjust the potential _gain_ of the call
     adjusted_payout = exp(-total_time * system.r) .* (final_prices .- K)
 
-    mean_payoff = mean(adjusted_payout)
+    
 
     #calculate CVAR using sorting and selecting worst case scenarios
 
-    #realistically, we would bin the 
+    #realistically, we would bin the data as sorting cost can skyrocket, 
+    #but this is more accurate.
     worst_to_best = sort(adjusted_payout)
 
     cut_index = ceil(Int64, (1-confidence_level) * length(worst_to_best))
 
     mean_worst_case_loss = mean(worst_to_best[1:cut_index+1])
 
-    return mean_payoff, mean_worst_case_loss
+    return worst_to_best, mean_worst_case_loss, cut_index
 end
 
 function evaluate_put_position_BS(K::Float64,system::BlackScholesModel,initial_price::Float64,N_batches::Int64 = 20,confidence_level::Float64 = 0.95)
@@ -119,7 +122,7 @@ function evaluate_put_position_BS(K::Float64,system::BlackScholesModel,initial_p
     #we represent the "backward" propegated interest on the risk-free bond to adjust the potential _gain_ of the call
     adjusted_payout = exp(-total_time * system.r) .* (K .-final_prices)
 
-    mean_payoff = mean(adjusted_payout)
+    
     #calculate CVAR using sorting and selecting worst case scenarios
 
     worst_to_best = sort(adjusted_payout)
@@ -128,20 +131,33 @@ function evaluate_put_position_BS(K::Float64,system::BlackScholesModel,initial_p
 
     mean_worst_case_loss = mean(worst_to_best[1:cut_index+1])
 
-    return mean_payoff, mean_worst_case_loss
+    return worst_to_best, mean_worst_case_loss, cut_index
 end
 
-#conditions reminiscent of the past two decade - brute-guessed numbers
-test = BlackScholesModel(0.01,1000,1000,0.14,0.04,0.03)
-simulated_movements = batch_simulator(test,1000.0,20)
+#conditions reminiscent of the past two decade for SNP 500 - brute-guessed numbers
+test = BlackScholesModel(0.01,1000,20000,0.14,0.04,0.025)
+
+payouts, mwcloss, cut_index = evaluate_put_position_BS(1025.0,test,1000.0,20,0.95)
+
+hist = histogram(payouts, color = "green", xlabel = "Payout", 
+ylabel = "Simulated frequencies of payouts", title = "CVar visualization", 
+label = "Simulated payoffs and losses", normalize = :pdf, dpi = 900)
+vline!(hist,[payouts[cut_index+1]], ls = :dash, color = "red", label = "Confidence cut at 95%")
+vline!(hist, [mwcloss], ls = :dash, color = "blue", label = "Mean loss beyond confidence cut")
+
+t = LinRange(-30,70,1000)
+
+o = std(payouts)
+mu = mean(payouts)
+y = @. 1/sqrt(2pi * o^2) * exp(-(t-mu)^2/(2o^2))
+plot!(hist, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 2.0)
 
 
-number_to_display = 100
-
-colors = [RGB(0.1,1 - n/number_to_display,0.5*n/number_to_display) for n in 1:number_to_display]'
-times = [i*test.dt for i in 1:test.NTimeSteps]
-
-plot0 = plot(times, [simulated_movements[n,:] for n in 1:number_to_display], 
-title = "Stock Price under BS model", legend = false, 
-linewidth = 0.5, linecolors = colors, xlabel = "Time", ylabel = "Possible future price", dpi = 500)
+#simulated_movements = batch_simulator(test,1000.0,20)
+#number_to_display = 100
+#colors = [RGB(0.1,1 - n/number_to_display,0.5*n/number_to_display) for n in 1:number_to_display]'
+#times = [i*test.dt for i in 1:test.NTimeSteps]
+#plot0 = plot(times, [simulated_movements[n,:] for n in 1:number_to_display], 
+#title = "Stock Price under BS model", legend = false, 
+#linewidth = 0.5, linecolors = colors, xlabel = "Time", ylabel = "Possible future price", dpi = 500)
 
