@@ -33,6 +33,8 @@ In case of our simple BS model, this is largely irrelevant though: any returns, 
 
 ### WIP - Calculating the implied volatility and drift rate using historical data
 
+### TODO - Post-BS models
+
 
 
 ## Quasi-general raycasting in General Relatvity
