@@ -3,12 +3,6 @@ Number of exercises in Julia.
 
 ## Stochastic Calculus Projects - Heavy WIP
 
-### Basic Black-Scholes Monte Carlo Simulation
-
-![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
-
-The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. 
-
 
 ### Brownian motion and analysis
 
@@ -20,6 +14,20 @@ Example of 'integrated' Brownian paths in one dimension ($\Delta y \propto N(0,1
 Since in 1 dimensions, there exists a representation for the PDF of the displacements of brownian paths, we can compare our results to such. Such a PDF is in fact a normal one, with $\propto N(\mu = 0,\sigma = \sqrt{T})$ where T is the total intergated time domain.
 
 ![final_positions_pdf](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/07863b1f-7797-4e25-821e-62ccc0eccf29)
+
+### Basic Black-Scholes Monte Carlo Simulation
+
+![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
+
+The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. 
+
+### Evaluating CVaR using numerical data
+
+![BS_put_plot](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/6c78209d-5944-48ee-8b3e-ae4bebfd4b80)
+
+CVaR quantifies the average expected losses beyond a certain confidence level. It can be used to quantify the worst-case-scenarios for a given put or call order, using a mass of simulated asset (i.e. in this case, stock) prices. This is either done via a) binning or b) by sorting all simulated returns and selecting the lowest (1-confidence) ratio of them.
+
+The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%.
 
 
 
