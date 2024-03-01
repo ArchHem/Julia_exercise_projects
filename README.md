@@ -31,7 +31,7 @@ The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $
 
 In case of our simple BS model, this is largely irrelevant though: any returns, as we see, will be normally distributed and thus a simulation, strictly speaking, will not be needed.
 
-###WIP - Calculating the implied volatility and drift rate using historical data
+### WIP - Calculating the implied volatility and drift rate using historical data
 
 
 
