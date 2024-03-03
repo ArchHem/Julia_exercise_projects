@@ -27,11 +27,13 @@ The above plot was produced entirely artifically, using drift coefficient $\mu =
 
 CVaR quantifies the average expected losses beyond a certain confidence level. It can be used to quantify the worst-case-scenarios for a given put or call order, using a mass of simulated asset (i.e. in this case, stock) prices. This is either done via a) binning or b) by sorting all simulated returns and selecting the lowest (1-confidence) ratio of them.
 
-The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%, using simulated stock prices from our toy BS model.
+The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%, using simulated stock prices from our toy BS model. As expected,the final payouts - which are proportional to $S_T - K$ - are normally distributed as implied by the Black-Scholes solution, which predicts that $S_T \propto N(\ln(S_0) + (\mu - \frac{\sigma^2}{2}))T, \sigma^2 T$
 
 ### WIP - Calculating the implied volatility and drift rate using historical data
 
-The bellow parameter estimation was run on the real-world data of "OTP Bank Nyrt" using Yahoo Finance daily data from 2014 to 2019 (https://finance.yahoo.com/quote/OTP.F/history?period1=1388534400&period2=1546300800&interval=1d&filter=history&frequency=1d&includeAdjustedClose=true). While in case of our toy BS model, we could estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$ and a MLE fitter, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved.
+The bellow parameter estimation was run on the real-world data of "OTP Bank Nyrt" using Yahoo Finance daily data from 2014 to 2019 (https://finance.yahoo.com/quote/OTP.F/history). While in case of our toy BS model, we could estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$. 
+
+Howver, in a more general case, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved.
 
 ### TODO - Post-BS models
 
