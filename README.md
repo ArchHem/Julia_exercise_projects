@@ -31,7 +31,7 @@ The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $
 
 ### WIP - Calculating the implied volatility and drift rate using historical data
 
-The bellow parameter estimation was run on the real-world data of "OTP Bank Nyrt" using Yahoo Finance daily data from 2014 to 2019 (https://finance.yahoo.com/quote/OTP.F/history). While in case of our toy BS model, we could estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$. 
+The bellow parameter estimation was run on the real-world data of "OTP Bank Nyrt" using Yahoo Finance daily data from 2012 to 2019 (https://finance.yahoo.com/quote/OTP.F/history). While in case of our toy BS model, we could estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$. 
 
 Howver, in a more general case, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved.
 
