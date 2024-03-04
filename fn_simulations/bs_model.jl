@@ -1,6 +1,7 @@
 using ProgressBars, StaticArrays, Plots, Statistics, CSV, DataFrames, Statistics, Dates, Optim
 
-OTP_DATA_DF = CSV.read("fn_simulations/fn_data/OTP.csv", delim=",", DataFrame)
+#OTP_DATA_DF = CSV.read("fn_simulations/fn_data/OTP.csv", delim=",", DataFrame)
+OTP_DARA_DF = CSV.read("fn_simulations/fn_data/OTP_weekly.csv", delim=",", DataFrame)
 
 function date_to_seconds(date::Date)
 
