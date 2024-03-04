@@ -39,7 +39,7 @@ To come around this fact, we can use that fact, that according to the BS model, 
 
 To reduce complexity and computational costs, one can reformulate this as a minimization of the negative log-likelyhood function. In this particular case, we have an analytical formula for the log of the likelyhoods, so the actual minimazation is straightforward. 
 
-We must stress that the resulting estimate is still highly inaccurate. Longer non-trading periods will heavily influence the historic, annual drift rate and is likely to result in severe over-estimation. In a real model, it is better to either artifically even further weight down such periods,further sanitize the data or to use daily closing prices instead.
+We must stress that the resulting estimate is still highly inaccurate. Longer non-trading periods will heavily influence the historic, annual drift rate and is likely to result in severe over-estimation. In a real model, it is better to either artifically even further weight down such periods, further sanitize the data or to use weekly closing prices instead.
 
 However, in a more general case, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved analytically. This will be more relevant to non-Black-Scholes models.
 
