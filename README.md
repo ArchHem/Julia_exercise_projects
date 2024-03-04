@@ -31,13 +31,15 @@ The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $
 
 ### WIP - Calculating the implied volatility and drift rate using historical data
 
-A parameter estimation was run on the real-world data of "OTP Bank Nyrt" (among other central european stocks) using Yahoo Finance daily data from 2015 to 2020 (eg: https://finance.yahoo.com/quote/OTP.F/history). While in case of our toy BS model, we can estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$, we still need to account for the fact that our data is unevenly distributed in time. 
+A parameter estimation was run on the real-world data of "OTP Bank Nyrt" (among other central european stocks) using Yahoo Finance daily data from 2015 to 2020 (eg: https://finance.yahoo.com/quote/OTP.F/history). While in case of our toy BS model, we can estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$, we still need to account for the fact that our data is unevenly distributed in time i.e. $\delta t$ is in general not constant. 
 
 ![OTP_price_history](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/24da1590-f158-438c-9862-69524f5ff16e)
 
 To come around this fact, we can use that fact, that according to the BS model, the log-returns are normally distributed: $\ln(S_{\delta t + T}/S_T) \propto N((\mu - \frac{\sigma^2}{2}) \delta t, \sigma^2 \delta t) = P_i$. We can thus reformulate the problem as a likelyhood maximization problem: given historic time series data $S_i$ and $t_i$ what parameters $\mu$ and $\sigma$ maximize the likelyhood ($\prod_i P_i$) this particular "path" occuring? 
 
 To reduce complexity and computational costs, one can reformulate this as a minimization of the negative log-likelyhood function. In this particular case, we have an analytical formula for the log of the likelyhoods, so the actual minimazation is straightforward. 
+
+We must stress that the resulting estimate is still highly inaccurate. Longer non-trading periods will heavily influence the historic, annual drift rate and is likely to result in severe over-estimation. In a real model, it is better to either artifically even further weight down such periods, or to use daily closing prices instead.
 
 However, in a more general case, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved analytically. This will be more relevant to non-Black-Scholes models.
 
