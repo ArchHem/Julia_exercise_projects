@@ -240,10 +240,3 @@ OTP_PLOT_TIMES = @. Date(unix2datetime(times_in_seconds))
 plot0 = plot(OTP_DATA_DF[!,"Date"], OTP_DATA_DF[!,"Close"], xlabel = "Date", ylabel = "Closing Price [EUR]", 
 title = "BS Analysis of 'OTP Nyrt' Stock Prices", color = "red", label = "Historical Stock Price", dpi = 900)
 
-simulated_movements = batch_simulator(OTP_MODEL,OTP_DATA_DF[1,"Close"],2)
-number_to_display = 10
-colors = [RGB(0.1,1 - n/number_to_display,0.5*n/number_to_display) for n in 1:number_to_display]'
-
-plot!(plot0, OTP_PLOT_TIMES, [simulated_movements[n,:] for n in 1:number_to_display], 
-label = "",
-linewidth = 0.5, color = colors, alpha = 0.5)
