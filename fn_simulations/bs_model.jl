@@ -1,4 +1,15 @@
-using ProgressBars, StaticArrays, Plots, Statistics
+using ProgressBars, StaticArrays, Plots, Statistics, CSV, DataFrames, Statistics, Dates, Optim
+
+OTP_DATA_DF = CSV.read("fn_simulations/fn_data/OTP.csv", delim=",", DataFrame)
+
+function date_to_seconds(date::Date)
+
+    #We do not know the eaxt closing time but it seldom matters (we are only interested in differences in time to accounts for uneven time-series data
+    
+    date = DateTime(date)
+    seconds_passed = datetime2unix(date)
+    return seconds_passed
+end
 
 struct BlackScholesModel
     dt::Float64
@@ -10,6 +21,44 @@ struct BlackScholesModel
     mu::Float64
     #interest rate of underyling, risk-free bond
     r::Float64
+end
+
+function log_likelyhood(logratio::Vector{Float64},delta_t::Vector{Float64},
+    mu::Float64,o::Float64)
+    #uses the fact that the log of the rato of S_i+1 /S_i is normally distributed
+
+    to_sum = @. -(logratio - (mu - o^2 /2) * delta_t)^2 / (2 * o^2 * delta_t) - log(sqrt(2pi * o^2 * delta_t))
+
+    LLH = -sum(to_sum)
+
+    return LLH
+
+end
+
+function estimate_BS_params(data::DataFrame)
+    #assume CSV generated query from Yahoo Finance
+    year_length = 3600 * 24 * 365
+
+    dates_in_year = date_to_seconds.(data[!,"Date"]) / year_length
+    delta_times_in_year = dates_in_year[2:end]-dates_in_year[1:end-1]
+    prices = Array(data[!,"Close"]) 
+    
+    valid_logdiff = log.(prices[2:end]) .- log.(prices[1:end-1])
+    
+    #see:
+    #https://www.wolframalpha.com/input
+    #?i=d%2Fdu+ln%28exp%28-%28x-%28u-o%5E2+%2F2%29T%29%5E2+%2F
+    #+%282*%28o%5E2+T%29+%29%29%2F%28sqrt%282pi*T%29*o%29%29
+    
+    local_likelyhood(vec) = log_likelyhood(valid_logdiff, delta_times_in_year, vec[1],vec[2])
+
+    #just guessed paramters, base on past 15 years or sor
+
+    result = optimize(local_likelyhood, [0.02, 0.15])
+
+    params = Optim.minimizer(result)
+
+    return params[1], params[2]
 end
 
 function simulate_system(system::BlackScholesModel,initial_price::Float64)
@@ -134,23 +183,25 @@ function evaluate_put_position_BS(K::Float64,system::BlackScholesModel,initial_p
     return worst_to_best, mean_worst_case_loss, cut_index
 end
 
+
+
 #conditions reminiscent of the past two decade for SNP 500 - brute-guessed numbers
-test = BlackScholesModel(0.01,1000,20000,0.14,0.04,0.025)
+#test = BlackScholesModel(0.01,10000,20000,0.14,0.04,0.025)
 
-payouts, mwcloss, cut_index = evaluate_put_position_BS(1025.0,test,1000.0,20,0.95)
+#payouts, mwcloss, cut_index = evaluate_put_position_BS(1025.0,test,1000.0,20,0.95)
 
-hist = histogram(payouts, color = "green", xlabel = "Payout", 
-ylabel = "Simulated frequencies of payouts", title = "CVar visualization", 
-label = "Simulated payoffs and losses", normalize = :pdf, dpi = 900)
-vline!(hist,[payouts[cut_index+1]], ls = :dash, color = "red", label = "Confidence cut at 95%")
-vline!(hist, [mwcloss], ls = :dash, color = "blue", label = "Mean loss beyond confidence cut")
+#hist = histogram(payouts, color = "green", xlabel = "Payout", 
+#ylabel = "Simulated frequencies of payouts", title = "CVar visualization", 
+#label = "Simulated payoffs and losses", normalize = :pdf, dpi = 900)
+#vline!(hist,[payouts[cut_index+1]], ls = :dash, color = "red", label = "Confidence cut at 95%")
+#vline!(hist, [mwcloss], ls = :dash, color = "blue", label = "Mean loss beyond confidence cut")
 
-t = LinRange(-30,70,1000)
+#t = LinRange(-5,10,1000)
 
-o = std(payouts)
-mu = mean(payouts)
-y = @. 1/sqrt(2pi * o^2) * exp(-(t-mu)^2/(2o^2))
-plot!(hist, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 2.0)
+#o = std(payouts)
+#mu = mean(payouts)
+#y = @. 1/sqrt(2pi * o^2) * exp(-(t-mu)^2/(2o^2))
+#plot!(hist, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 2.0)
 
 
 #simulated_movements = batch_simulator(test,1000.0,20)
@@ -161,3 +212,38 @@ plot!(hist, t, y, label = "Fitted normal distribution", color = "orange", linewi
 #title = "Stock Price under BS model", legend = false, 
 #linewidth = 0.5, linecolors = colors, xlabel = "Time", ylabel = "Possible future price", dpi = 500)
 
+mu_otp, sigma_otp = estimate_BS_params(OTP_DATA_DF)
+
+#set up simulator 
+
+
+#since our dt is set to be constant, we need to "cheat"
+
+local_zero_date = date_to_seconds(OTP_DATA_DF[1,"Date"])
+local_end_date = date_to_seconds(OTP_DATA_DF[end,"Date"])
+Number_of_years = (local_end_date - local_zero_date) / (3600 * 24 * 365)
+Number_of_days = (local_end_date - local_zero_date) / (3600 * 24)
+
+
+
+dt_OTP = Number_of_years/Number_of_days #simulate "daily" prices - do not deal with gaps due to trading stops
+
+N_OTP = 10000
+#the historic interest rate is not of interest here, but it was around 2% on average
+OTP_MODEL = BlackScholesModel(dt_OTP, Number_of_days, N_OTP, sigma_otp, mu_otp, 0.02)
+
+#TODO: Unmess this line
+times_in_seconds = collect(LinRange(local_zero_date, local_end_date, Int64(Number_of_days)))
+OTP_PLOT_TIMES = @. Date(unix2datetime(times_in_seconds))
+
+
+plot0 = plot(OTP_DATA_DF[!,"Date"], OTP_DATA_DF[!,"Close"], xlabel = "Date", ylabel = "Closing Price [EUR]", 
+title = "BS Analysis of 'OTP Nyrt' Stock Prices", color = "red", label = "Historical Stock Price", dpi = 900)
+
+simulated_movements = batch_simulator(OTP_MODEL,OTP_DATA_DF[1,"Close"],2)
+number_to_display = 10
+colors = [RGB(0.1,1 - n/number_to_display,0.5*n/number_to_display) for n in 1:number_to_display]'
+
+plot!(plot0, OTP_PLOT_TIMES, [simulated_movements[n,:] for n in 1:number_to_display], 
+label = "",
+linewidth = 0.5, color = colors, alpha = 0.5)
