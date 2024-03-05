@@ -13,7 +13,7 @@ Example of 'integrated' Brownian paths in one dimension ($\Delta y \propto N(0,1
 
 ### Example of 1D brownian motion distribution.
 
-Since in 1 dimensions, there exists a representation for the PDF of the displacements of (continious) brownian paths, we can compare our results to such. Such a PDF is in fact a normal one, with $\propto N(\mu = 0,\sigma = \sqrt{T})$ where T is the total intergated time domain. In fact, this form of the solution is a self-consistency check: for a particular time-step $\Delta t$, we need to draw from a normal distribution with sigma $\sqrt(T)$ to recover the correct distribution for the (local) estimate. 
+Since in 1 dimensions, there exists a representation for the PDF of the displacements of (continious) brownian paths, we can compare our results to such. Such a PDF is in fact a normal one, with $\propto N(\mu = 0,\sigma = \sqrt{T})$ where T is the total intergated time domain. In fact, this form of the solution is a self-consistency check: for a particular time-step $\Delta t$, we need to draw from a normal distribution with sigma $\sqrt{\Delta t}$ to recover the correct distribution for the (local) estimate. 
 
 ![final_positions_pdf](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/07863b1f-7797-4e25-821e-62ccc0eccf29)
 
