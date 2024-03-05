@@ -6,16 +6,14 @@ Number of exercises in Julia.
 
 ### Brownian motion and analysis
 
-We define a _discretized_ Brownian motion $W_i$ via the following criteria: W_{i+1}-W_{i} = $N(0,1)$
-
-
+We define a _discretized_ Brownian motion $W_i$ via the following criteria: $W_{i+1}-W_{i} \propto N(0,1)$. I.e. there is no correlation between subsequent "steps". Itr is a useful toy model for other, more complicated models.
 
 Example of 'integrated' Brownian paths in one dimension ($\Delta y \propto N(0,1)$.
 ![BrownianMotion](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/943d531b-9e2f-4440-9a83-6f0c4c825979)
 
 ### Example of 1D brownian motion distribution.
 
-Since in 1 dimensions, there exists a representation for the PDF of the displacements of brownian paths, we can compare our results to such. Such a PDF is in fact a normal one, with $\propto N(\mu = 0,\sigma = \sqrt{T})$ where T is the total intergated time domain.
+Since in 1 dimensions, there exists a representation for the PDF of the displacements of (continious) brownian paths, we can compare our results to such. Such a PDF is in fact a normal one, with $\propto N(\mu = 0,\sigma = \sqrt{T})$ where T is the total intergated time domain. In fact, this form of the solution is a self-consistency check: for a particular time-step $\Delta t$, we need to draw from a normal distribution with sigma $\sqrt(T)$ to recover the correct distribution for the (local) estimate. 
 
 ![final_positions_pdf](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/07863b1f-7797-4e25-821e-62ccc0eccf29)
 
@@ -23,7 +21,7 @@ Since in 1 dimensions, there exists a representation for the PDF of the displace
 
 ![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
 
-The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. 
+The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. Practical limitations and SIMD-like LLVM means that multi-batching is not particularly needed under a few million events - we are just demonstrating a future possibility.
 
 ### Evaluating CVaR using numerical data
 
