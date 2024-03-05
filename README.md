@@ -27,7 +27,22 @@ The above plot was produced entirely artifically, using drift coefficient $\mu =
 
 CVaR quantifies the average expected losses beyond a certain confidence level. It can be used to quantify the worst-case-scenarios for a given put or call order, using a mass of simulated asset (i.e. in this case, stock) prices. This is either done via a) binning or b) by sorting all simulated returns and selecting the lowest (1-confidence) ratio of them.
 
-The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%, using simulated stock prices from our toy BS model. As expected,the final payouts - which are proportional to $S_T - K$ - are well aproximated to be normally distributed in this timeframe, as implied by the prediction of the Black-Scholes model, which predicts that $\ln(S_T) \propto N(\ln(S_0) + (\mu - \frac{\sigma^2}{2})T, \sigma^2 T)$.
+The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%, using simulated stock prices from our toy BS model. As expected,the final payouts - which are proportional to $S_T - K$ - are well aproximated to be normally distributed in this timeframe, as implied by the prediction of the Black-Scholes model, which predicts that $\ln(S_T) \propto N(\ln(S_0) + (\mu - \frac{\sigma^2}{2})T, \sigma^2 T)$. _However_, we do know that the distribution of the final stock prices as a normal distribution is only a useful approximation under certain assumptions - the BS model predicts lognormal distributions. 
+
+To explore the disrepancy between the observed, normal and lognormal distributions, we can widen our time-horizon. As we increase our time-frame, we expect more and more disrepancies between the normal and observed distributions. The following plots were distributed with $\dt = 0.02, N_{it} = 200000, \sigma = 0.14, \mu = 0.04$
+
+![normal_vs_lognormal_T_10](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/67b57289-edce-4d65-a5d0-302403febb2d)
+
+![normal_vs_lognormal_T_20](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c396654a-199a-4577-b8af-bf7ddf13f228)
+
+![normal_vs_lognormal_T_30](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/40dfc238-f824-41a5-a166-e8f2beb677b9)
+
+![normal_vs_lognormal_T_40](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/28a1d44f-79d6-4c3e-b017-3917d0f34144)
+
+![normal_vs_lognormal_T_50](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/3259a332-7e6a-41a6-b6b1-4f8c4c9d090f)
+
+
+
 
 ### WIP - Calculating the implied volatility and drift rate using historical data
 
