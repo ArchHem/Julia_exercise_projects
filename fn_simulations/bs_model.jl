@@ -1,7 +1,7 @@
-using ProgressBars, StaticArrays, Plots, Statistics, CSV, DataFrames, Statistics, Dates, Optim
+using ProgressBars, StaticArrays, Plots, Statistics, CSV, DataFrames, Statistics, Dates, Optim, LaTeXStrings
 
-#OTP_DATA_DF = CSV.read("fn_simulations/fn_data/OTP.csv", delim=",", DataFrame)
-OTP_DARA_DF = CSV.read("fn_simulations/fn_data/OTP_weekly.csv", delim=",", DataFrame)
+OTP_DATA_DF = CSV.read("fn_simulations/fn_data/OTP.csv", delim=",", DataFrame)
+#OTP_DATA_DF = CSV.read("fn_simulations/fn_data/OTP_weekly.csv", delim=",", DataFrame)
 
 function date_to_seconds(date::Date)
 
@@ -184,25 +184,34 @@ function evaluate_put_position_BS(K::Float64,system::BlackScholesModel,initial_p
     return worst_to_best, mean_worst_case_loss, cut_index
 end
 
+function lognormal(S::Float64,o::Float64,mu::Float64)
+    y = 1/(S * sqrt(2pi*o^2)) * exp(-(log(S)-mu)^2 / (2 * o^2))
+    return y
+end
+
 
 
 #conditions reminiscent of the past two decade for SNP 500 - brute-guessed numbers
-#test = BlackScholesModel(0.01,10000,20000,0.14,0.04,0.025)
+#test = BlackScholesModel(0.02,300,20000,0.14,0.04,0.025)
 
 #payouts, mwcloss, cut_index = evaluate_put_position_BS(1025.0,test,1000.0,20,0.95)
 
 #hist = histogram(payouts, color = "green", xlabel = "Payout", 
 #ylabel = "Simulated frequencies of payouts", title = "CVar visualization", 
-#label = "Simulated payoffs and losses", normalize = :pdf, dpi = 900)
+#label = "Simulated payoffs and losses", normalize = :pdf, dpi = 1200)
 #vline!(hist,[payouts[cut_index+1]], ls = :dash, color = "red", label = "Confidence cut at 95%")
 #vline!(hist, [mwcloss], ls = :dash, color = "blue", label = "Mean loss beyond confidence cut")
 
-#t = LinRange(-5,10,1000)
-
+#t = LinRange(minimum(payouts),maximum(payouts),1000)
+#t_shift = -minimum(payouts) + 0.00001
 #o = std(payouts)
 #mu = mean(payouts)
+
+#lgn_params = [log(mu^2/sqrt(mu^2 +o^2)), sqrt(log(1+o^2 / mu^2))]
+
 #y = @. 1/sqrt(2pi * o^2) * exp(-(t-mu)^2/(2o^2))
-#plot!(hist, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 2.0)
+#plot!(hist, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 1.0)
+
 
 
 #simulated_movements = batch_simulator(test,1000.0,20)
@@ -213,31 +222,55 @@ end
 #title = "Stock Price under BS model", legend = false, 
 #linewidth = 0.5, linecolors = colors, xlabel = "Time", ylabel = "Possible future price", dpi = 500)
 
-mu_otp, sigma_otp = estimate_BS_params(OTP_DATA_DF)
+
+#OTP analysis
+#mu_otp, sigma_otp = estimate_BS_params(OTP_DATA_DF)
 
 #set up simulator 
 
 
 #since our dt is set to be constant, we need to "cheat"
 
-local_zero_date = date_to_seconds(OTP_DATA_DF[1,"Date"])
-local_end_date = date_to_seconds(OTP_DATA_DF[end,"Date"])
-Number_of_years = (local_end_date - local_zero_date) / (3600 * 24 * 365)
-Number_of_days = (local_end_date - local_zero_date) / (3600 * 24)
+#local_zero_date = date_to_seconds(OTP_DATA_DF[1,"Date"])
+#local_end_date = date_to_seconds(OTP_DATA_DF[end,"Date"])
+#Number_of_years = (local_end_date - local_zero_date) / (3600 * 24 * 365)
+#Number_of_days = (local_end_date - local_zero_date) / (3600 * 24)
 
 
 
-dt_OTP = Number_of_years/Number_of_days #simulate "daily" prices - do not deal with gaps due to trading stops
+#dt_OTP = Number_of_years/Number_of_days #simulate "daily" prices - do not deal with gaps due to trading stops
 
-N_OTP = 10000
+#N_OTP = 10000
 #the historic interest rate is not of interest here, but it was around 2% on average
-OTP_MODEL = BlackScholesModel(dt_OTP, Number_of_days, N_OTP, sigma_otp, mu_otp, 0.02)
+#OTP_MODEL = BlackScholesModel(dt_OTP, Number_of_days, N_OTP, sigma_otp, mu_otp, 0.02)
 
 #TODO: Unmess this line
-times_in_seconds = collect(LinRange(local_zero_date, local_end_date, Int64(Number_of_days)))
-OTP_PLOT_TIMES = @. Date(unix2datetime(times_in_seconds))
+#times_in_seconds = collect(LinRange(local_zero_date, local_end_date, Int64(Number_of_days)))
+#OTP_PLOT_TIMES = @. Date(unix2datetime(times_in_seconds))
 
 
-plot0 = plot(OTP_DATA_DF[!,"Date"], OTP_DATA_DF[!,"Close"], xlabel = "Date", ylabel = "Closing Price [EUR]", 
-title = "BS Analysis of 'OTP Nyrt' Stock Prices", color = "red", label = "Historical Stock Price", dpi = 900)
+#plot0 = plot(OTP_DATA_DF[!,"Date"], OTP_DATA_DF[!,"Close"], xlabel = "Date", ylabel = "Closing Price [EUR]", 
+#title = "BS Analysis of 'OTP Nyrt' Stock Prices", color = "red", label = "Historical Stock Price", dpi = 900)
+
+test0 = BlackScholesModel(0.02,60,200000,0.14,0.04,0.025)
+final_prices = simulate_system_no_track(test0,100.0)[:,2]
+
+o = std(final_prices)
+mu = mean(final_prices)
+lgn_params = [log(mu^2/sqrt(mu^2 +o^2)), sqrt(log(1+o^2 / mu^2))]
+
+t = LinRange(minimum(final_prices),maximum(final_prices),1000)
+
+y = @. 1/sqrt(2pi * o^2) * exp(-(t-mu)^2/(2o^2))
+y2 = lognormal.(t, lgn_params[2], lgn_params[1])
+
+hist0 = histogram(final_prices, color = "green", xlabel = "Stock price", bins = 200,
+ylabel = "Simulated frequencies of prices", title = "Final Simulated Stock Price distribution", 
+label = L"Stock Prices $\mu = 0.04$, $\sigma = 0.14$", normalize = :pdf, dpi = 1200)
+
+plot!(hist0, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 1.0)
+plot!(hist0, t, y2, label = "Fitted lognormal distribution", color = "blue", linewidth = 1.0)
+
+
+
 
