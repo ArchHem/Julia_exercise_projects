@@ -35,13 +35,14 @@ A parameter estimation was run on the real-world data of "OTP Bank Nyrt" (among 
 
 ![OTP_price_history](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/24da1590-f158-438c-9862-69524f5ff16e)
 
-To come around this fact, we can use that fact, that according to the BS model, the log-returns are normally distributed: $\ln(S_{\delta t + T}/S_T) \propto N((\mu - \frac{\sigma^2}{2}) \delta t, \sigma^2 \delta t) = P_i$. We can thus reformulate the problem as a likelyhood maximization problem: given historic time series data $S_i$ and $t_i$ what parameters $\mu$ and $\sigma$ maximize the likelyhood ($\prod_i P_i$) this particular "path" occuring? 
+To come around this fact, we can use that fact, that according to the BS model, the log-returns are normally distributed: $\ln(S_{\delta t + T}/S_T) \propto N((\mu - \frac{\sigma^2}{2}) \delta t, \sigma^2 \delta t) = P_i$. We can thus reformulate the problem as a likelyhood maximization problem: given historic time series data $S_i$ and $t_i$ what parameters $\mu$ and $\sigma$ maximize the likelyhood ($\prod_i P_i$) this particular "path" occuring? To reduce complexity and computational costs, one can reformulate this as a minimization of the negative log-likelyhood function. In this particular case, we have an analytical formula for the log of the likelyhoods, so the actual minimazation is straightforward. 
 
-To reduce complexity and computational costs, one can reformulate this as a minimization of the negative log-likelyhood function. In this particular case, we have an analytical formula for the log of the likelyhoods, so the actual minimazation is straightforward. 
+Using daily closing prices as our 'stock' prices in the aove example, we determine that the values of $\mu$ and $\sigma$ best maximize the likelyhood under the BS model are $\mu = 0.322512$
+$\sigma = 0.31608$ for this particular time period.. 
 
-We must stress that the resulting estimate is still highly inaccurate. Longer non-trading periods that are present as separate days will heavily influence the historic, annual drift rate and is likely to result in severe errors in the estimation. In a real model, it is better to either artifically even further weight down such periods, further sanitize the data or to use weekly closing prices instead.
+We must stress that the resulting estimate is still highly inaccurate. Longer non-trading periods that are present as separate days will heavily influence the historic, annual drift rate and is likely to result in severe errors in the estimation. We also know that the underlying BS model's assumption of constant historical volatility and drift rate are incorrect so these are just values that best conform to this particular model. 
 
-However, in a more general case, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved analytically. This will be more relevant to non-Black-Scholes models.
+However, in a more general case, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved analytically, just how they behave under a change of parameters. This will be more relevant to non-Black-Scholes models.
 
 ### TODO - Post-BS models
 
