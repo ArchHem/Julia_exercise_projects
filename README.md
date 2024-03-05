@@ -17,6 +17,8 @@ Since in 1 dimensions, there exists a representation for the PDF of the displace
 
 ![final_positions_pdf](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/07863b1f-7797-4e25-821e-62ccc0eccf29)
 
+### Drift Processes and the Black-Scholes Model
+
 ### Basic Black-Scholes Monte Carlo Simulation
 
 ![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
