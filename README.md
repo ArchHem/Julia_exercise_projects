@@ -6,6 +6,10 @@ Number of exercises in Julia.
 
 ### Brownian motion and analysis
 
+We define a _discretized_ Brownian motion $W_i$ via the following criteria: W_{i+1}-W_{i} = $N(0,1)$
+
+
+
 Example of 'integrated' Brownian paths in one dimension ($\Delta y \propto N(0,1)$.
 ![BrownianMotion](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/943d531b-9e2f-4440-9a83-6f0c4c825979)
 
@@ -42,6 +46,7 @@ T = 40
 ![normal_vs_lognormal_T_50](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/3259a332-7e6a-41a6-b6b1-4f8c4c9d090f)
 T = 50
 
+TODO: Carry out p-value to numerically confirm.
 
 
 ### WIP - Calculating the implied volatility and drift rate using historical data
