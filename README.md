@@ -20,7 +20,7 @@ Since in 1 dimensions, there exists a representation for the PDF of the displace
 ### Drift Processes and the Black-Scholes Model
 
 The Black-Scholes model aims to model a market containing at least one risky asset (typically a stock) and its financial derivatives. It makes a number of assumptions, most important of which is the fact that the market is frictionless: there are no associated trading costs, no taxes etc, and that the asset pays no dividends or other fees to its owner. 
-We furthermore assume that there exists a riskless form of bond - i.e. which could be a central bank - which offers an interest rate of \textit{r} on our money. During the derivation of the BS model, one of the underlying assumptions is that there is no riskless way of turning a profit on the market. 
+We furthermore assume that there exists a riskless form of bond - i.e. which could be a central bank - which offers an interest rate of $r$ on our money. During the derivation of the BS model, one of the underlying assumptions is that there is no riskless way of turning a profit on the market. 
 
 ### Basic Black-Scholes Monte Carlo Simulation
 
