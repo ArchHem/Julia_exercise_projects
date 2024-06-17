@@ -19,6 +19,9 @@ Since in 1 dimensions, there exists a representation for the PDF of the displace
 
 ### Drift Processes and the Black-Scholes Model
 
+The Black-Scholes model aims to model a market containing at least one risky asset (typically a stock) and its financial derivatives. It makes a number of assumptions, most important of which is the fact that the market is frictionless: there are no associated trading costs, no taxes etc, and that the asset pays no dividends or other fees to its owner. 
+We furthermore assume that there exists a riskless form of bond - i.e. which could be a central bank - which offers an interest rate of \textit{r} on our money. During the derivation of the BS model, one of the underlying assumptions is that there is no riskless way of turning a profit on the market. 
+
 ### Basic Black-Scholes Monte Carlo Simulation
 
 ![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
@@ -46,9 +49,6 @@ T = 40
 ![normal_vs_lognormal_T_50](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/3259a332-7e6a-41a6-b6b1-4f8c4c9d090f)
 T = 50
 
-TODO: Carry out p-value to numerically confirm.
-
-
 ### WIP - Calculating the implied volatility and drift rate using historical data
 
 A parameter estimation was run on the real-world data of "OTP Bank Nyrt" (among other central european stocks) using Yahoo Finance daily data from 2015 to 2020 (eg: https://finance.yahoo.com/quote/OTP.F/history). While in case of our toy BS model, we can estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$, we still need to account for the fact that our data is unevenly distributed in time i.e. $\delta t$ is in general not constant. 
@@ -58,13 +58,9 @@ A parameter estimation was run on the real-world data of "OTP Bank Nyrt" (among 
 To come around this fact, we can use that fact, that according to the BS model, the log-returns are normally distributed: $\ln(S_{\delta t + T}/S_T) \propto N((\mu - \frac{\sigma^2}{2}) \delta t, \sigma^2 \delta t) = P_i$. We can thus reformulate the problem as a likelyhood maximization problem: given historic time series data $S_i$ and $t_i$ what parameters $\mu$ and $\sigma$ maximize the likelyhood ($\prod_i P_i$) this particular "path" occuring? To reduce complexity and computational costs, one can reformulate this as a minimization of the negative log-likelyhood function. In this particular case, we have an analytical formula for the log of the likelyhoods, so the actual minimazation is straightforward. 
 
 Using daily closing prices as our 'stock' prices in the aove example, we determine that the values of $\mu$ and $\sigma$ best maximize the likelyhood under the BS model are $\mu = 0.322512$
-and $\sigma = 0.31608$ for this particular time period.. 
+and $\sigma = 0.31608$ for this particular time period.
 
 We must stress that the resulting estimate is still highly inaccurate. Longer non-trading periods that are present as separate days will heavily influence the historic, annual drift rate and is likely to result in severe errors in the estimation. We also know that the underlying BS model's assumption of constant historical volatility and drift rate are incorrect so these are just values that best conform to this particular model. 
-
-However, in a more general case, we want a method that can be applied to any "blackbox" model, i.e. one where we are not (initially) aware of how our stock prices are evolved analytically, just how they behave under a change of parameters. This will be more relevant to non-Black-Scholes models.
-
-### TODO - Post-BS models
 
 
 
