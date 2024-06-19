@@ -9,7 +9,7 @@ _Martingale_: A martingale is an (ordered) sequence of random variables where th
 
 _Wiener process_: A continious type of stochastic process. The exact definition will not be quoted here: what we need to know is that for a Wienner process, $W(t)$, for any two times $T + \delta T > T$, we have that $W_{t+\delta T} - W_{t} \propto N(0, \delta T)$ indepent of $T$. Furthermore, we set $W(0) = 0$. (i.e. it satisfies the conditions of being a continious martingale)
 
-_Itô's Lemma_: Can be thought of as the "chain rule" for functions involving Wienner processes. Given a variable $X$ that is undergoing a drift-diffusion process, we have that (by defintion) $dX = \mu(t) dt + \sigma(t) dW(t)$ i.e. it is undergoing a deterministic 'drift' (dictated by $\mu(t)$ and a Wienner process $W(t)$
+_Itô's Lemma_: Can be thought of as the "chain rule" for functions involving Wienner processes. Given a variable $X$ that is undergoing a drift-diffusion process, we have that (by defintion) $dX(t) = \mu(t) dt + \sigma(t) dW(t)$ i.e. it is undergoing a deterministic 'drift' (dictated by $\mu(t)$ and a nondetemrinistic Wienner process $W(t)$). Letting $f = f(t, X)$, Itô's Lemma states that the differential of f is then $df = (\dfrac{\partial f}{\partial t} + \mu(t) \dfrac{\partial f}{\partial X} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 f}{\partial t^2}) dt + \sigma(t) \dfrac{\partial f}{\partial x} dW(t) $
 
 
 ### Brownian motion and analysis
