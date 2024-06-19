@@ -11,7 +11,7 @@ _Wiener process_: A continious type of stochastic process. The exact definition 
 
 _Itô's Lemma_: Can be thought of as the "chain rule" for functions involving Wienner processes. Given a variable $X$ that is undergoing a drift-diffusion process, we have that (by defintion) $dX(t) = \mu(t) dt + \sigma(t) dW(t)$ i.e. it is undergoing a deterministic 'drift' proportional to $\mu(t)$ and a nondetemrinistic Wienner process $W(t)$ proportional to $\sigma(t)$. Letting $f = f(t, X)$, Itô's Lemma states that the differential of f is then $df = (\dfrac{\partial f}{\partial t} + \mu(t) \dfrac{\partial f}{\partial X} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 f}{\partial x^2}) dt + \sigma(t) \dfrac{\partial f}{\partial x} dW(t)$. The exact derivation of the lemma is not presented here: however, one can arrive to the lemma by just Taylor expanding $F(X,t)$ to second order and using that for Wiener processes, $dW(t)^2 = dt$ (see above), and disregarding any element that has larger than linear $dt$ scaling.
 
-Itô's Lemma is applicable for bot just variables $X$ that are not undergoing a Wiener process, but aslo to a wider range of stochastic processes. This is important to keep in mind if one aims to model fat-tail walks which might be a better represenation of asset price movement. 
+Itô's Lemma is applicable not just for variables $X$ that are undergoing a Wiener process, but aslo to a wider range of stochastic processes. This is important to keep in mind if one aims to model fat-tail walks which might be a better represenation of asset price movement. 
 
 
 
