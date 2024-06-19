@@ -5,7 +5,11 @@ Number of exercises in Julia.
 
 ### Mathemitcal background and defintions used
 
-Martingale: A martingale is an (ordered) sequence of random variables where the expectation value of the next random variable equals that of the last in the sequence, regardless of the sequence leading up to it. I.e. in terms of conditional probabilities, gievn a sequence of random variables $S$ and last element $Z_i$, we have that $E(Z_i|S) = Z_i$.
+_Martingale_: A martingale is an (ordered) sequence of random variables where the expectation value of the next random variable equals that of the last in the sequence, regardless of the sequence leading up to it. I.e. in terms of conditional probabilities, gievn a sequence of random variables $S$ and last element $Z_i$, we have that $E(Z_i|S) = Z_i$.
+
+_Wiener process_: A continious type of stochastic process. The exact definition will not be quoted here: what we need to know is that for a Wienner process, $W(t)$, for any two times $T + \delta T > T$, we have that $W_{t+\delta T} - W_{t} \propto N(0, \delta T)$ indepent of $T$. Furthermore, we set $W(0) = 0$. (i.e. it satisfies the conditions of being a continious martingale)
+
+_Itô's Lemma_: Can be thought of as the "chain rule" for functions involving Wienner processes. Given a variable $X$ that is undergoing a drift-diffusion process, we have that (by defintion) $dX = \mu(t) dt + \sigma(t) dW(t)$ i.e. it is undergoing a deterministic 'drift' (dictated by $\mu(t)$ and a Wienner process $W(t)$
 
 
 ### Brownian motion and analysis
