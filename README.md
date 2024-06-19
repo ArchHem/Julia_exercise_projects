@@ -47,7 +47,7 @@ $\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S(t)^2 \frac{\partial^2 V}
 
 We have made a number of implicit assumptions during this very short derivation. We have assumed that $\Delta$ is invariant under time (not neccesiraly true!) and that neither $\mu, \sigma r$ depends on time. Expanded models will be considered later. 
 
-This is a remarkable result, as by solving teh resulting PDE under the correct boundary conditions, the Black-Scholes model predicts that for a riskless portfolio there exists a _singular_ 'fair' price of a European style option assuming we have perfect information on the involved parameters. 
+This is a remarkable result, as by solving the resulting PDE under the correct boundary conditions, the Black-Scholes model predicts that for a riskless portfolio there exists a _singular_ 'fair' price of a European style option assuming we have perfect information on the involved parameters. 
 
 
 ### Simplest Black-Scholes Monte Carlo Simulation
