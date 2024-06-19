@@ -43,10 +43,14 @@ To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a s
 
 in total, we end up with: $dP = r P dt = (\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S(t)^2 \frac{\partial^2 V}{\partial S^2}) dt$. Since our portfolio is set up such that $P = \Delta S + V$, this yields the PDE: 
 
-$\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S(t)^2 \frac{\partial^2 V}{\partial S^2} = r (V(t)- \dfrac{\partial V}{\partial S} S)$ (havng used the condition on $\Delta$).
+$\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S(t)^2 \frac{\partial^2 V}{\partial S^2} = r (V(t)- \dfrac{\partial V}{\partial S} S)$ (having used the condition on $\Delta$).
+
+We have made a number of implicit assumptions during this very short derivation. We have assumed that $\Delta$ is invariant under time (not neccesiraly true!) and that neither $\mu, \sigma r$ depends on time. Expanded models will be considered later. 
+
+This is a remarkable result, as by solving teh resulting PDE under the correct boundary conditions, the Black-Scholes model predicts that for a riskless portfolio there exists a _singular_ 'fair' price of a European style option assuming we have perfect information on the involved parameters. 
 
 
-### Basic Black-Scholes Monte Carlo Simulation
+### Simplest Black-Scholes Monte Carlo Simulation
 
 ![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
 
