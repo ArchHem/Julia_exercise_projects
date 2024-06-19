@@ -37,7 +37,7 @@ To derive the Black-Scholes PDE, we assume that we have a _riskless_ portfolio c
 
 We write the change in the value of the portflio as: $dP = \Delta dS + dV$ i.e. we hold $\Delta$ amounts of the stock. For a self-financing portfolio, the change in the portfolio's value should be equal to that of a riskless bond, i.e. $dP = r(t) P dt$, as there exists no riskless way of turning a profit larger than that of the riskless bond (no arbitrage) 
 
-To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a drift-diffusion process on the underlying asset, $dS = \mu(t) dt + \sigma(t) dW(t)$ where $W(t)$ is a Wiener process, that $dV = (\dfrac{\partial V}{\partial t} + \mu(t) \dfrac{\partial V}{\partial S} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 V}{\partial S^2}) dt + \sigma(t) \dfrac{\partial V}{\partial S} dW(t)$. Collecting all terms of $dW(t)$ that result from expanding $dP$, one gets that they equal 
+To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a drift-diffusion process on the underlying asset, $dS(t) = \mu(t) S(t) dt + \sigma(t) S(t) dW(t)$ where $W(t)$ is a Wiener process, that $dV = (\dfrac{\partial V}{\partial t} + \mu(t) \dfrac{\partial V}{\partial S} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 V}{\partial S^2}) dt + \sigma(t) \dfrac{\partial V}{\partial S} dW(t)$. Collecting all terms of $dW(t)$ that result from expanding $dP$, one gets that they equal $(\sigma(t) S(t) \dfrac{\partial V}{\partial S} + \Delta \sigma(t) S(t)) dW(t)$
 
 ### Basic Black-Scholes Monte Carlo Simulation
 
