@@ -31,7 +31,13 @@ Since in 1 dimensions, there exists a representation for the PDF of the displace
 ### Drift Processes and the Black-Scholes Model
 
 The Black-Scholes model aims to model a market containing at least one risky asset (typically a stock) and its financial derivatives. It makes a number of assumptions, most important of which is the fact that the market is frictionless: there are no associated trading costs, no taxes etc, and that the asset pays no dividends or other fees to its owner. 
-We furthermore assume that there exists a riskless form of bond - i.e. which could be a bond offered by a central bank - which offers an interest rate of $r$ on our money. 
+We furthermore assume that there exists a riskless form of bond - i.e. which could be a bond offered by a central bank - which offers an interest rate of $r(t)$ on our money. 
+
+To derive the Black-Scholes PDE, we assume that we have a _riskless_ portfolio comprised of a asset $S$ (typically a stock) and an European style option $V$ that is dependant on that asset. We want to construct a portfolio that is _self financing_, that is, any loss of value on the stock's price is offset by the change of the option we are holding. Mathematically, if we denote the portfolio value as P, this means that:
+
+We write the change in the value of the portflio as: $dP = \Delta dS + dV$ i.e. we hold $\Delta$ amounts of the stock. For a self-financing portfolio, the change in the portfolio's value should be equal to that of a riskless bond, i.e. $dP = r(t) P dt$, as there exists no riskless way of turning a profit larger than that of the riskless bond (no arbitrage) 
+
+To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a drift-diffusion process on the underlying asset, $dS = \mu(t) dt + \sigma(t) dW(t)$ where $W(t)$ is a Wiener process, that $dV = (\dfrac{\partial V}{\partial t} + \mu(t) \dfrac{\partial V}{\partial S} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 V}{\partial S^2}) dt + \sigma(t) \dfrac{\partial V}{\partial S} dW(t)$. Collecting all terms of $dW(t)$ that result from expanding $dP$, one gets that they equal 
 
 ### Basic Black-Scholes Monte Carlo Simulation
 
