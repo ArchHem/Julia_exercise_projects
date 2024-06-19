@@ -28,7 +28,7 @@ We furthermore assume that there exists a riskless form of bond - i.e. which cou
 
 The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. Practical limitations and SIMD-like LLVM means that multi-batching is not particularly needed under a few million events - we are just demonstrating a future possibility.
 
-### Evaluating CVaR using numerical data
+### Evaluating simplest-case CVaR using numerical data
 
 ![BS_put_plot](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/6c78209d-5944-48ee-8b3e-ae4bebfd4b80)
 
