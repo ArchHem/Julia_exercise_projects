@@ -37,13 +37,13 @@ We furthermore assume that there exists a riskless form of bond - i.e. which cou
 
 To derive the Black-Scholes PDE, we assume that we have a _riskless_ portfolio comprised of a asset $S$ (typically a stock) and an European style option $V$ that is dependant on that asset. We want to construct a portfolio that is _self financing_, that is, any loss of value on the stock's price is offset by the change of the option we are holding. Mathematically, if we denote the portfolio value as P, this means that:
 
-We write the change in the value of the portflio as: $dP = \Delta dS + dV$ i.e. we hold $\Delta$ amounts of the stock. For a self-financing portfolio, the change in the portfolio's value should be equal to that of a riskless bond, i.e. $dP = r(t) P dt$, as there exists no riskless way of turning a profit larger than that of the riskless bond (no arbitrage) 
+We write the change in the value of the portflio as: $dP = \Delta dS + dV$ i.e. we hold $\Delta$ amounts of the stock. For a self-financing portfolio, the change in the portfolio's value should be equal to that of a riskless bond, i.e. $dP = r P dt$, as there exists no riskless way of turning a profit larger than that of the riskless bond (no arbitrage) 
 
-To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a stochastic process on the underlying asset, $dS(t) = \mu(t) S(t) dt + \sigma(t) S(t) dW(t)$ where $W(t)$ is a Wiener process, that $dV = (\dfrac{\partial V}{\partial t} + \mu(t) S(t) \dfrac{\partial V}{\partial S} + \sigma(t)^2 S(t)^2\frac{1}{2}\dfrac{\partial^2 V}{\partial S^2}) dt + \sigma(t) S(t) \dfrac{\partial V}{\partial S} dW(t)$. Collecting all terms of $dW(t)$ that result from expanding $dP$, one gets that they equal $(\sigma(t) S(t) \dfrac{\partial V}{\partial S} + \Delta \sigma(t) S(t)) dW(t)$. Since our model is assumed to be _riskless_ this term must vanish, i.e. $\Delta = - \dfrac{\partial V}{\partial S}$, imposing a further constraint. 
+To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a stochastic process on the underlying asset, $dS(t) = \mu S(t) dt + \sigma S(t) dW(t)$ where $W(t)$ is a Wiener process, that $dV = (\dfrac{\partial V}{\partial t} + \mu S(t) \dfrac{\partial V}{\partial S} + \sigma^2 S(t)^2\frac{1}{2}\dfrac{\partial^2 V}{\partial S^2}) dt + \sigma S(t) \dfrac{\partial V}{\partial S} dW(t)$. Collecting all terms of $dW(t)$ that result from expanding $dP$, one gets that they equal $(\sigma S(t) \dfrac{\partial V}{\partial S} + \Delta \sigma S(t)) dW(t)$. Since our model is assumed to be _riskless_ this term must vanish, i.e. $\Delta = - \dfrac{\partial V}{\partial S}$, imposing a further constraint. 
 
-in total, we end up with: $dP = r(t) P dt = (\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma(t)^2 S(t)^2 \frac{\partial^2 V}{\partial S^2}) dt$. Since our portfolio is set up such that $P = \Delta S + V$, this yields the PDE: 
+in total, we end up with: $dP = r P dt = (\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S(t)^2 \frac{\partial^2 V}{\partial S^2}) dt$. Since our portfolio is set up such that $P = \Delta S + V$, this yields the PDE: 
 
-$\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma(t)^2 S(t)^2 \frac{\partial^2 V}{\partial S^2} = r(V(t)- \dfrac{\partial V}{\partial S} S)$ (havng used the condition on delta).
+$\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S(t)^2 \frac{\partial^2 V}{\partial S^2} = r (V(t)- \dfrac{\partial V}{\partial S} S)$ (havng used the condition on $\Delta$).
 
 
 ### Basic Black-Scholes Monte Carlo Simulation
