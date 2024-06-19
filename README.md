@@ -9,9 +9,11 @@ _Martingale_: A martingale is an (ordered) sequence of random variables where th
 
 _Wiener process_: A continious type of stochastic process. The exact definition will not be quoted here: what we need to know is that for a Wienner process, $W(t)$, for any two times $T + \delta T > T$, we have that $W_{t+\delta T} - W_{t} \propto N(0, \delta T)$ indepent of $T$, i.e. it 'locally' varies as a normal distribution with spread $\sqrt{\delta T}$. Furthermore, we set $W(0) = 0$. (i.e. it satisfies the conditions of being a continious martingale)
 
-_Itô's Lemma_: Can be thought of as the "chain rule" for functions involving Wienner processes. Given a variable $X$ that is undergoing a drift-diffusion process, we have that (by defintion) $dX(t) = \mu(t) dt + \sigma(t) dW(t)$ i.e. it is undergoing a deterministic 'drift' proportional to $\mu(t)$ and a nondetemrinistic Wienner process $W(t)$ proportional to $\sigma(t)$. Letting $f = f(t, X)$, Itô's Lemma states that the differential of f is then $df = (\dfrac{\partial f}{\partial t} + \mu(t) \dfrac{\partial f}{\partial X} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 f}{\partial x^2}) dt + \sigma(t) \dfrac{\partial f}{\partial x} dW(t)$. The exact derivation of the lemma is not presented here: however, one can arrive to the lemma by just Taylor expanding $F(X,t)$ to second order and using that for Wiener processes, $dW(t)^2 = dt$ (see above), and disregarding any element that has larger than linear $dt$ scaling.
+_Itô's Lemma_: Can be thought of as the "chain rule" for functions involving Itô processes. 
 
-Itô's Lemma is applicable not just for variables $X$ that are undergoing a Wiener process, but aslo to a wider range of stochastic processes. This is important to keep in mind if one aims to model fat-tail walks which might be a better represenation of asset price movement. 
+In the simplest case, iven a variable $X$ that is undergoing a drift-diffusion process, we have that $dX(t) = \mu(t) dt + \sigma(t) dW(t)$ i.e. it is undergoing a deterministic 'drift' proportional to $\mu(t)$ and a nondeterministic Wienner process $W(t)$ proportional to $\sigma(t)$. Letting $f = f(t, X)$, Itô's Lemma states that the differential of f is then $df = (\dfrac{\partial f}{\partial t} + \mu(t) \dfrac{\partial f}{\partial X} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 f}{\partial x^2}) dt + \sigma(t) \dfrac{\partial f}{\partial x} dW(t)$. The exact derivation of the lemma is not presented here: however, one can arrive to the lemma by just Taylor expanding $F(X,t)$ to second order and using that for Wiener processes, $dW(t)^2 = dt$ (see above), and disregarding any element that has larger than linear $dt$ scaling.
+
+Itô's Lemma is applicable not just for variables $X$ that are undergoing a Wiener process, but also to a wider range of stochastic processes, such as the asset movement assumed by the Black-Scholes model. This is important to keep in mind if one aims to model fat-tail walks which might be a better represenation of asset price movement. The generalized Itô Lemma is beyond the needs of this document and is typically expressed in integral formalism instead. 
 
 
 
@@ -37,7 +39,10 @@ To derive the Black-Scholes PDE, we assume that we have a _riskless_ portfolio c
 
 We write the change in the value of the portflio as: $dP = \Delta dS + dV$ i.e. we hold $\Delta$ amounts of the stock. For a self-financing portfolio, the change in the portfolio's value should be equal to that of a riskless bond, i.e. $dP = r(t) P dt$, as there exists no riskless way of turning a profit larger than that of the riskless bond (no arbitrage) 
 
-To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a drift-diffusion process on the underlying asset, $dS(t) = \mu(t) S(t) dt + \sigma(t) S(t) dW(t)$ where $W(t)$ is a Wiener process, that $dV = (\dfrac{\partial V}{\partial t} + \mu(t) \dfrac{\partial V}{\partial S} + \frac{\sigma(t)^2}{2}\dfrac{\partial^2 V}{\partial S^2}) dt + \sigma(t) \dfrac{\partial V}{\partial S} dW(t)$. Collecting all terms of $dW(t)$ that result from expanding $dP$, one gets that they equal $(\sigma(t) S(t) \dfrac{\partial V}{\partial S} + \Delta \sigma(t) S(t)) dW(t)$
+To write this as a PDE, we apply Itô's Lemma to dV, one gets that, assuming a stochastic process on the underlying asset, $dS(t) = \mu(t) S(t) dt + \sigma(t) S(t) dW(t)$ where $W(t)$ is a Wiener process, that $dV = (\dfrac{\partial V}{\partial t} + \mu(t) S(t) \dfrac{\partial V}{\partial S} + \frac{\sigma(t)^2 S(t)^2}{2}\dfrac{\partial^2 V}{\partial S^2}) dt + \sigma(t) S(t) \dfrac{\partial V}{\partial S} dW(t)$. Collecting all terms of $dW(t)$ that result from expanding $dP$, one gets that they equal $(\sigma(t) S(t) \dfrac{\partial V}{\partial S} + \Delta \sigma(t) S(t)) dW(t)$. Since our model is assumed to be _riskless_ this term must vanish, i.e. $\Delta = - \dfrac{\partial V}{\partial S}$, imposing a further constraint. 
+
+in total, we end up with: $dP = r(t) P dt = (\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma(t)^2 S(t)^2 \frac{\partial^2 V}{\partial S^2}) dt$
+
 
 ### Basic Black-Scholes Monte Carlo Simulation
 
@@ -52,19 +57,6 @@ The above plot was produced entirely artifically, using drift coefficient $\mu =
 CVaR quantifies the average expected losses beyond a certain confidence level. It can be used to quantify the worst-case-scenarios for a given put or call order, using a mass of simulated asset (i.e. in this case, stock) prices. This is either done via a) binning or b) by sorting all simulated returns and selecting the lowest (1-confidence) ratio of them.
 
 The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%, using simulated stock prices from our toy BS model. As expected,the final payouts - which are proportional to $S_T - K$ - are well aproximated to be normally distributed in this timeframe, as implied by the prediction of the Black-Scholes model, which predicts that $\ln(S_T) \propto N(\ln(S_0) + (\mu - \frac{\sigma^2}{2})T, \sigma^2 T)$. _However_, we do know that the distribution of the final stock prices as a normal distribution is only a useful approximation under certain assumptions - the BS model predicts lognormal distributions. 
-
-To explore the disrepancy between the observed, normal and lognormal distributions, we can widen our time-horizon. As we increase our time-frame, we expect more and more disrepancies between the normal and observed distributions. The following plots were distributed with $\Delta t = 0.02, N_{it} = 200000, \sigma = 0.14, \mu = 0.04$
-
-![normal_vs_lognormal_T_10](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/67b57289-edce-4d65-a5d0-302403febb2d)
-T = 10
-![normal_vs_lognormal_T_20](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c396654a-199a-4577-b8af-bf7ddf13f228)
-T = 20
-![normal_vs_lognormal_T_30](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/40dfc238-f824-41a5-a166-e8f2beb677b9)
-T = 30
-![normal_vs_lognormal_T_40](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/28a1d44f-79d6-4c3e-b017-3917d0f34144)
-T = 40
-![normal_vs_lognormal_T_50](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/3259a332-7e6a-41a6-b6b1-4f8c4c9d090f)
-T = 50
 
 ### WIP - Calculating the implied volatility and drift rate using historical data
 
