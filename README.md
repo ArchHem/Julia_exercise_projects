@@ -3,7 +3,7 @@ Number of exercises in Julia.
 
 ## Stochastic Calculus Projects
 
-### Mathemitcal background and defintions used
+### Mathematical background and definitions used
 
 _Martingale_: A martingale is an (ordered) sequence of random variables where the expectation value of the next random variable equals that of the last in the sequence, regardless of the sequence leading up to it. I.e. in terms of conditional probabilities, gievn a sequence of random variables $S$ and last element $Z_i$, we have that $E(Z_i|S) = Z_i$.
 
