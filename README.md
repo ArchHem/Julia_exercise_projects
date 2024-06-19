@@ -45,7 +45,7 @@ in total, we end up with: $dP = r P dt = (\dfrac{\partial V}{\partial t} + \frac
 
 $\dfrac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S(t)^2 \frac{\partial^2 V}{\partial S^2} = r (V(t)- \dfrac{\partial V}{\partial S} S)$ (having used the condition on $\Delta$).
 
-We have made a number of implicit assumptions during this very short derivation. We have assumed that $\Delta$ is invariant under time (not neccesiraly true!) and that neither $\mu, \sigma r$ depends on time. Expanded models will be considered later. 
+We have made a number of implicit assumptions during this very short derivation. We have assumed that $\Delta$ is invariant under time (not neccesiraly true!) and that neither $\mu, \sigma ,r$ depends on time. Expanded models will be considered later. 
 
 This is a remarkable result, as by solving the resulting PDE under the correct boundary conditions, the Black-Scholes model predicts that for a riskless portfolio there exists a _singular_ 'fair' price of a European style option assuming we have perfect information on the involved parameters. 
 
