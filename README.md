@@ -95,7 +95,7 @@ $G(0,S(0)) = E(max[0,S(T)-K])$ (having used our boundary condition on the expiry
 
 We have used the fact that at the time of creating the option, the price of the stock, $S_0$, is known at the present. 
 
-The calcuation of this expectation value is a bit tedius and will not be done in its full extent here. The only other information that we need is that $S(t) = S_0 \exp{(\sigma W(t) - \sigma^2 /2 t)}$ (as explicitly assumed by the Black-Scholes model). 
+The calcuation of this expectation value is a bit tedius and will not be done in its full extent here. The only other information that we need is that $S(t) = S_0 \exp{(\sigma W(t) - \sigma^2 /2 t)}$ (as explicitly assumed by the Black-Scholes model). By direcetly evaluting the involved quantities and making use of the intermidate variables, which we define as:
 
 
 
