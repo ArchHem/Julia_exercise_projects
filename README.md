@@ -49,7 +49,7 @@ We have made a number of implicit assumptions during this very short derivation.
 
 This is a remarkable result, as by solving the resulting PDE under the correct boundary conditions, the Black-Scholes model predicts that for a riskless portfolio there exists a _singular_ 'fair' price of a European style option assuming we have perfect information on the involved parameters. 
 
-We should note that the above derivation, strictly speaking, is incorrect. It must be noted that generally speaking, a portfolio $P = \Delta S + V$ is _not_ self financing, but one arrives to the same results (PDE) using the more general portfolio $P = \Delta S + \Gamma V$ whic can be made generally self-financing. 
+We should note that the above derivation, strictly speaking, is incorrect. It must be noted that generally speaking, a portfolio $P = \Delta S + V$ is _not_ self financing, but one arrives to the same results (PDE) using the more general portfolio $P = \Delta S + \Gamma V$ which can be made generally self-financing and riskless. Another problem arises from the 'delta on delta' problem: our derivation had implicitly assumed that the Itô differential of $\Delta$ is 0, which is not true generally speaking.  
 
 
 ### Simplest Black-Scholes Monte Carlo Simulation
@@ -57,14 +57,6 @@ We should note that the above derivation, strictly speaking, is incorrect. It mu
 ![BS_initial](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/c9f18374-a60b-4f38-8e14-e81ad6024e89)
 
 The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. Practical limitations and SIMD-like LLVM means that multi-batching is not particularly needed under a few million events - we are just demonstrating a future possibility.
-
-### Evaluating simplest-case CVaR using numerical data
-
-![BS_put_plot](https://github.com/ArchHem/Julia_exercise_projects/assets/84734676/6c78209d-5944-48ee-8b3e-ae4bebfd4b80)
-
-CVaR quantifies the average expected losses beyond a certain confidence level. It can be used to quantify the worst-case-scenarios for a given put or call order, using a mass of simulated asset (i.e. in this case, stock) prices. This is either done via a) binning or b) by sorting all simulated returns and selecting the lowest (1-confidence) ratio of them.
-
-The above plot was produced using $\mu = 0.04$, $\sigma = 0.14$, $S_0 = 1000$, $K_{put} = 1025$, r = 0.025, T = 1 (1000 timesteps) and with a confidence level of 95%, using simulated stock prices from our toy BS model. As expected,the final payouts - which are proportional to $S_T - K$ - are well aproximated to be normally distributed in this timeframe, as implied by the prediction of the Black-Scholes model, which predicts that $\ln(S_T) \propto N(\ln(S_0) + (\mu - \frac{\sigma^2}{2})T, \sigma^2 T)$. _However_, we do know that the distribution of the final stock prices as a normal distribution is only a useful approximation under certain assumptions - the BS model predicts lognormal distributions. 
 
 ### Calculating the simplest-case implied volatility and drift rate using historical data
 
@@ -80,6 +72,17 @@ and $\sigma = 0.31608$ for this particular time period.
 We must stress that the resulting estimate is still highly inaccurate. Longer non-trading periods that are present as separate days will heavily influence the historic, annual drift rate and is likely to result in severe errors in the estimation. We also know that the underlying BS model's assumption of constant historical volatility and drift rate are incorrect so these are just values that best conform to this particular model. 
 
 In reality, volatity is not constant in time and real-world data implies different volatities for options with different strike prices and maturity times. Analysis of such options (inverting for the implied volatility by some model) is paramount. However, the very existence of a non-constant volatility surface proves that the Black-Scholes model is fundamentaly unable to reproduce the conditions found in real markets (or at least that not all traders follow the 'fair' pricing predicted). 
+
+### Option pricing under the BS model
+
+As mentioned before, there exists closed-form solutions to the Black-Scholes PDE for a European style option with maturity time T and strike price K. Taking $r, \sigma$ and $\mu$ to be constants, we apply the boundary conditions of:  
+
+$V(S = 0,t) = 0$ (for a worthless stock at present, the value of the option is zero as per the Black-Scholes model it cant gain any value)
+
+$V(S,t) = S - K$ as $S \rarrow \infty $ (for an infitely valuable stock, the price of call option is independent of maturity time).
+
+$V(S,T) = max[0, S-K]$ (i.e. the option (not) being exercised at maturity)
+
 
 
 
