@@ -83,6 +83,10 @@ $V(S,t) = S - K$ as $S => \infty$ (for an infitely valuable stock, the price of 
 
 $V(S,T) = max[0, S-K]$ (i.e. the option (not) being exercised at maturity)
 
+To solve the PDE, we can use the fact that one may solve the PDE under $r = 0$ and 'upscale' the resulting solution G(t,S) to the correct solution via $V(t,S) = \exp{r (T-t)} G(t, S \exp{r(T-t)})$. This can be verifed by a simple chain rule, but 'physically' what this represents is the (de)-valuation of money due to the existence of a safe bond and its interest rate (as if we deposited some money $M$ during the creation a bond of maturity time $T$). 
+
+Using this, one may write out the stochastic differential of $G(t,S)$ as $dG = \sigma S(t) G(t,S) dW + (\dfrac{\partial G}{\partial t} + \mu S(t) \dfrac{\partial G}{\partial S} +  \sigma^2 /2 S(t)^2 \dfrac{\partial^2 G}{\partial S^2})$ 
+
 
 
 
