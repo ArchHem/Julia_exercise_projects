@@ -79,7 +79,7 @@ As mentioned before, there exists closed-form solutions to the Black-Scholes PDE
 
 $V(S = 0,t) = 0$ (for a worthless stock at present, the value of the option is zero as per the Black-Scholes model it cant gain any value)
 
-$V(S,t) = S - K$ as $S \rightarrow \infty $ (for an infitely valuable stock, the price of call option is independent of maturity time).
+$V(S,t) = S - K$ as $S => \infty$ (for an infitely valuable stock, the price of call option is independent of maturity time).
 
 $V(S,T) = max[0, S-K]$ (i.e. the option (not) being exercised at maturity)
 
