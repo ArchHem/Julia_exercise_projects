@@ -85,7 +85,20 @@ $V(S,T) = max[0, S-K]$ (i.e. the option (not) being exercised at maturity)
 
 To solve the PDE, we can use the fact that one may solve the PDE under $r = 0$ and 'upscale' the resulting solution G(t,S) to the correct solution via $V(t,S) = \exp{r (T-t)} G(t, S \exp{r(T-t)})$. This can be verifed by a simple chain rule, but 'physically' what this represents is the (de)-valuation of money due to the existence of a safe bond and its interest rate (as if we deposited some money $M$ during the creation a bond of maturity time $T$). 
 
-Using this, one may write out the stochastic differential of $G(t,S)$ as $dG = \sigma S(t) G(t,S) dW + (\dfrac{\partial G}{\partial t} + \mu S(t) \dfrac{\partial G}{\partial S} +  \sigma^2 /2 S(t)^2 \dfrac{\partial^2 G}{\partial S^2})$ 
+Using this, one may write out the stochastic differential of $G(t,S)$ as $dG = \sigma S(t) G(t,S) dW + (\dfrac{\partial G}{\partial t} + \mu S(t) \dfrac{\partial G}{\partial S} +  \sigma^2 /2 S(t)^2 \dfrac{\partial^2 G}{\partial S^2}) dt$. Since the option obeys the Black-Scholes's PDE with $r = 0$, the dt term vanishes (the deterministic part of the SDE is independent of $\mu$ as proven before, so we may set it to $\mu = 0$), and thus we are left with:
+
+$dG = \sigma S(t) G(t,S) dW$ 
+
+So we had shown that it is a martingale as it has no explicit time differential present! We then may take its expection value (which is stable for some fixed time, as per defintion). Hence we have that $E(G_0) = E(G_T)$ and arrive to:
+
+$G(0,S(0)) = E(max[0,S(T)-K])$ (having used our boundary condition on the expiry)
+
+We have used the fact that at the time of creating the option, the price of the stock, $S_0$, is known at the present. 
+
+The calcuation of this expectation value is a bit tedius and will not be done in its full extent here. The only other information that we need is that $S(t) = S_0 \exp{\sigma W(t) - \sigma^2 /2 t}$ (as explicitly assumed by the Black-Scholes model). 
+
+
+
 
 
 
