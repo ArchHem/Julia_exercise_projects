@@ -103,15 +103,15 @@ and
 
 $d_{-}=d_{+}-\sigma \sqrt{T-t}$
 
-We arrrive to the 'fair' Europen call option price of:
+We arrrive to the 'fair' European call option price of:
 
-$V\left(S(t), t\right)_{c} = N\left(d_{+}\right) S(t) -N\left(d_{-}\right) K e^{-r(T-t)}$
+$V\left(S(t), t\right) = N\left(d_{+}\right) S(t) -N\left(d_{-}\right) K e^{-r(T-t)}$
 
 where N is the cumultative of the unit normal function.
 
 The price of the corresponding put option is then: 
 
-$V\left(S(t), t\right)_{p} = N\left(-d_{-}\right) K e^{-r(T-t)}-N\left(-d_{+}\right) S(t)$
+$V\left(S(t), t\right) = N\left(-d_{-}\right) K e^{-r(T-t)}-N\left(-d_{+}\right) S(t)$
 
 We can notice that there is a form of symetry in these expressions. This is due to the (implicit) relation between Europen style put and call options, which can be written as: 
 
