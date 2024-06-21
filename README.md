@@ -121,7 +121,7 @@ I.e. as we approach maturity time, $t = T$ the difference of the forward price a
 
 Hence, we may rewrite this as:
 
-$C(t)-P(t)= S(t) - \exp{(-r(T-t)} \cdot K)$ from which our symetry follows.
+$C(t)-P(t)= S(t) - \exp{(-r(T-t)} \cdot K$ from which our symetry follows.
 
 
 
