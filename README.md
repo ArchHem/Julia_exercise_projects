@@ -58,7 +58,7 @@ We should note that the above derivation, strictly speaking, is incorrect. It mu
 
 The above plot was produced entirely artifically, using drift coefficient $\mu = 0.001$ and quasi-volatity $\sigma= 0.001$. The underlying method exploits vectorization within a simple batch and multithreading between the various batches. Practical limitations and SIMD-like LLVM means that multi-batching is not particularly needed under a few million events - we are just demonstrating a future possibility.
 
-### Calculating the simplest-case implied volatility and drift rate using historical data
+### Calculating the volatility of a stock as implied by historical closing prices
 
 A parameter estimation was run on the real-world data of "OTP Bank Nyrt" (among other central european stocks) using Yahoo Finance daily data from 2015 to 2020 (eg: https://finance.yahoo.com/quote/OTP.F/history). While in case of our toy BS model, we can estimate $\mu$ and $\sigma$ using just the ratio of $\frac{S_{i+1}}{S_i}$, we still need to account for the fact that our data is unevenly distributed in time i.e. $\delta t$ is in general not constant. 
 
@@ -95,7 +95,28 @@ $G(0,S(0)) = E(max[0,S(T)-K])$ (having used our boundary condition on the expiry
 
 We have used the fact that at the time of creating the option, the price of the stock, $S_0$, is known at the present. 
 
-The calcuation of this expectation value is a bit tedius and will not be done in its full extent here. The only other information that we need is that $S(t) = S_0 \exp{(\sigma W(t) - \sigma^2 /2 t)}$ (as explicitly assumed by the Black-Scholes model). By direcetly evaluting the involved quantities and making use of the intermidate variables, which we define as:
+The calcuation of this expectation value is a bit tedius and will not be done in its full extent here. The only other information that we need is that $S(t) = S_0 \exp{(\sigma W(t) - \sigma^2 /2 t)}$ (as explicitly assumed by the Black-Scholes model). By directly evaluting the involved quantities and making use of the intermidate variables, which we define as:
+
+$d_{+}=\frac{1}{\sigma \sqrt{T-t}}\left[\ln \left(\frac{S(t)}{K}\right)+\left(r+\frac{\sigma^2}{2}\right)(T-t)\right]$
+
+and
+
+$d_{-}=d_{+}-\sigma \sqrt{T-t}$
+
+We arrrive to the 'fair' Europen call option price of:
+
+$V\left(S(t), t\right)_{c} = N\left(d_{+}\right) S(t) -N\left(d_{-}\right) K e^{-r(T-t)}$
+
+where N is the cumultative of the unit normal function.
+
+The price of the corresponding put option is then: 
+
+$V\left(S(t), t\right)_{p} = N\left(-d_{-}\right) K e^{-r(T-t)}-N\left(-d_{+}\right) S(t)$
+
+We can notice that there is a form of symetry in these expressions. This is due to the (implicit) relation between Europen style put and call options, which can be written as: 
+
+
+
 
 
 
