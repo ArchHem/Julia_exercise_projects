@@ -113,8 +113,15 @@ The price of the corresponding put option is then:
 
 $V_p \left(S(t), t\right) = N\left(-d_{-}\right) K e^{-r(T-t)}-N\left(-d_{+}\right) S(t)$
 
-We can notice that there is a form of symetry in these expressions. This is due to the (implicit) relation between Europen style put and call options, which can be written as: 
+We can notice that there is a form of symetry in these expressions. This is due to the (implicit) relation between Europen style put and call options, which can be written as, for put and out option prices at the maturity time $T$, with forward price $F$ and strike price $K$, as: 
 
+$C(t)-P(t)= \exp{(-r(T-t)} \cdot(F(t)-K)$
+
+I.e. as we approach maturity time, $t = T$ the difference of the forward price and strike price must converge to the difference of call and put option prices. The forward price of the asset itself, $F$, can be determined using the inverse of the exponential discount factor multiplying the current asset price $S$ (due to the assumed no-arbitrage condition).
+
+Hence, we may rewrite this as:
+
+$C(t)-P(t)= S(t) - \exp{(-r(T-t)} \cdot K)$ from which our symetry follows.
 
 
 
