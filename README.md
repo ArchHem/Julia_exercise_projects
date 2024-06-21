@@ -49,7 +49,7 @@ We have made a number of implicit assumptions during this very short derivation.
 
 This is a remarkable result, as by solving the resulting PDE under the correct boundary conditions, the Black-Scholes model predicts that for a riskless portfolio there exists a _singular_ 'fair' price of a European style option assuming we have perfect information on the involved parameters. 
 
-We should note that the above derivation, strictly speaking, is incorrect. It must be noted that generally speaking, a portfolio $P = \Delta S + V$ is _not_ self financing, but one arrives to the same results (PDE) using the more general portfolio $P = \Delta S + \Gamma V$ which can be made generally self-financing and riskless. Another problem arises from the 'delta on delta' problem: our derivation had implicitly assumed that the Itô differential of $\Delta$ is 0, which is not true generally speaking.  
+We should note that the above derivation, strictly speaking, is incorrect. It must be noted that generally speaking, a portfolio $P = \Delta S + V$ is _not_ self financing, but one arrives to the same results (PDE) using the more general portfolio $P = \Delta S + \Gamma V$ which can be made generally self-financing and riskless. Another problem arises from the 'delta on delta' problem: our derivation had implicitly assumed that the Itô differential of $\Delta$ is 0, whereas in reality its fairly obvious that the portfolio and its composition must change in reaction to the market, which is reflected in the amount of stocks we are holding. 
 
 
 ### Simplest Black-Scholes Monte Carlo Simulation
