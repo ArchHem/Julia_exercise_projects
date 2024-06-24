@@ -26,9 +26,10 @@ end
 
 function log_likelyhood(logratio::Vector{Float64},delta_t::Vector{Float64},
     mu::Float64,o::Float64)
-    #uses the fact that the log of the rato of S_i+1 /S_i is normally distributed
 
-    to_sum = @. -(logratio - (mu - o^2 /2) * delta_t)^2 / (2 * o^2 * delta_t) - log(sqrt(2pi * o^2 * delta_t))
+    #uses the fact that the log of the rato of S_i+1 /S_i is normally distributed with spread proportial to sqrt(delta t)
+
+    to_sum = @. -0.5 * (logratio - (mu - o^2 /2) * delta_t)^2 / (o^2 * delta_t) - log(sqrt(2pi * o^2 * delta_t))
 
     LLH = -sum(to_sum)
 
@@ -224,53 +225,52 @@ end
 
 
 #OTP analysis
-#mu_otp, sigma_otp = estimate_BS_params(OTP_DATA_DF)
+mu_otp, sigma_otp = estimate_BS_params(OTP_DATA_DF)
 
 #set up simulator 
 
 
 #since our dt is set to be constant, we need to "cheat"
 
-#local_zero_date = date_to_seconds(OTP_DATA_DF[1,"Date"])
-#local_end_date = date_to_seconds(OTP_DATA_DF[end,"Date"])
-#Number_of_years = (local_end_date - local_zero_date) / (3600 * 24 * 365)
-#Number_of_days = (local_end_date - local_zero_date) / (3600 * 24)
+local_zero_date = date_to_seconds(OTP_DATA_DF[1,"Date"])
+local_end_date = date_to_seconds(OTP_DATA_DF[end,"Date"])
+Number_of_years = (local_end_date - local_zero_date) / (3600 * 24 * 365)
+Number_of_days = (local_end_date - local_zero_date) / (3600 * 24)
 
 
 
-#dt_OTP = Number_of_years/Number_of_days #simulate "daily" prices - do not deal with gaps due to trading stops
+dt_OTP = Number_of_years/Number_of_days #simulate "daily" prices - do not deal with gaps due to trading stops
 
-#N_OTP = 10000
+N_OTP = 10000
 #the historic interest rate is not of interest here, but it was around 2% on average
-#OTP_MODEL = BlackScholesModel(dt_OTP, Number_of_days, N_OTP, sigma_otp, mu_otp, 0.02)
+OTP_MODEL = BlackScholesModel(dt_OTP, Number_of_days, N_OTP, sigma_otp, mu_otp, 0.02)
 
 #TODO: Unmess this line
-#times_in_seconds = collect(LinRange(local_zero_date, local_end_date, Int64(Number_of_days)))
-#OTP_PLOT_TIMES = @. Date(unix2datetime(times_in_seconds))
+times_in_seconds = collect(LinRange(local_zero_date, local_end_date, Int64(Number_of_days)))
+OTP_PLOT_TIMES = @. Date(unix2datetime(times_in_seconds))
 
+plot0 = plot(OTP_DATA_DF[!,"Date"], OTP_DATA_DF[!,"Close"], xlabel = "Date", ylabel = "Closing Price [EUR]", 
+title = "BS Analysis of 'OTP Nyrt' Stock Prices", color = "red", label = "Historical Stock Price", dpi = 900)
 
-#plot0 = plot(OTP_DATA_DF[!,"Date"], OTP_DATA_DF[!,"Close"], xlabel = "Date", ylabel = "Closing Price [EUR]", 
-#title = "BS Analysis of 'OTP Nyrt' Stock Prices", color = "red", label = "Historical Stock Price", dpi = 900)
+#AUX
+#test0 = BlackScholesModel(0.02,60,200000,0.14,0.04,0.025)
+#final_prices = simulate_system_no_track(test0,100.0)[:,2]
 
-test0 = BlackScholesModel(0.02,60,200000,0.14,0.04,0.025)
-final_prices = simulate_system_no_track(test0,100.0)[:,2]
+#o = std(final_prices)
+#mu = mean(final_prices)
 
-o = std(final_prices)
-mu = mean(final_prices)
-lgn_params = [log(mu^2/sqrt(mu^2 +o^2)), sqrt(log(1+o^2 / mu^2))]
+#lgn_params = [log(mu^2/sqrt(mu^2 +o^2)), sqrt(log(1+o^2 / mu^2))]
 
-t = LinRange(minimum(final_prices),maximum(final_prices),1000)
+#t = LinRange(minimum(final_prices),maximum(final_prices),1000)
 
-y = @. 1/sqrt(2pi * o^2) * exp(-(t-mu)^2/(2o^2))
-y2 = lognormal.(t, lgn_params[2], lgn_params[1])
+#y = @. 1/sqrt(2pi * o^2) * exp(-(t-mu)^2/(2o^2))
+#y2 = lognormal.(t, lgn_params[2], lgn_params[1])
 
-hist0 = histogram(final_prices, color = "green", xlabel = "Stock price", bins = 200,
-ylabel = "Simulated frequencies of prices", title = "Final Simulated Stock Price distribution", 
-label = L"Stock Prices $\mu = 0.04$, $\sigma = 0.14$", normalize = :pdf, dpi = 1200)
+#hist0 = histogram(final_prices, color = "green", xlabel = "Stock price", bins = 200,
+#ylabel = "Simulated frequencies of prices", title = "Final Simulated Stock Price distribution", 
+#label = L"Stock Prices $\mu = 0.04$, $\sigma = 0.14$", normalize = :pdf, dpi = 1200)
 
-plot!(hist0, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 1.0)
-plot!(hist0, t, y2, label = "Fitted lognormal distribution", color = "blue", linewidth = 1.0)
-
-
+#plot!(hist0, t, y, label = "Fitted normal distribution", color = "orange", linewidth = 1.0)
+#plot!(hist0, t, y2, label = "Fitted lognormal distribution", color = "blue", linewidth = 1.0)
 
 

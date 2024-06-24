@@ -40,7 +40,7 @@ kerr_metric_representation = @SMatrix [
     0.0 0.0 0.0 kerr_g_33
 ]
 
-v_drive = 0.5
+v_drive = 0.25
 x_s = v_drive * (x1 + 15)
 v_s = v_drive
 
@@ -194,10 +194,10 @@ camera_pos = @MVector [0.0,0.0,-15.0,0.0]
 camera_front = @MVector [0.0, 0.0, 1.0, 0.0]
 camera_up = @MVector [0.0,0.0,0.0,1.0]
 
-N_x = 1600
-N_y = 800
-rays_initial_allvector = ADM_raytracing.camera_rays_generator(ALC_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006/2,N_x,N_y)
+N_x = 800
+N_y = 400
+rays_initial_allvector = ADM_raytracing.camera_rays_generator(ALC_ADM,camera_pos,camera_veloc,camera_front,camera_up,0.006,N_x,N_y)
 final_allvector = ADM_raytracing.integrate_ADM_geodesics_RK4(ALC_ADM,rays_initial_allvector,12000,ALC_d0_scaler,ALC_termination_cause)
-test_image = ADM_raytracing.render_image(ALC_ADM,"raytracing/celestial_spheres/imaginary_LEO.png",N_x,N_y,final_allvector,ALC_CS_caster,ALC_colorer)
+test_image = ADM_raytracing.render_image(ALC_ADM,"raytracing/celestial_spheres/tracker.png",N_x,N_y,final_allvector,ALC_CS_caster,ALC_colorer)
 
 println("test")
