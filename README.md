@@ -140,7 +140,7 @@ Which exhibits the empirically observed 'volatity smile' and its (slight) skew i
 We have furthermore ran our LLH minimization algorithm on the historic closing prices of GOOG and had determined its historic volatity from 2023-01-01 to 2024-06-23 to have been:
 $\sigma_h = 0.33813$.
 
-The volatility surface above assigns the implied volatility $\sigma_i$ for each put option with strike value $K$ and time-to-maturity $T-t$. The whole of the surface has an average implied volatility of $\sigma_i = 0.462605$ which is clearly different from the historic one! 
+The volatility surface above assigns the implied volatility $\sigma_i$ for each put option with strike value $K$ and time-to-maturity $T-t$. The numerical artefacts of zero volatility are due to the root-finder involved and are discarded for future analysis. The whole of the surface has an average implied volatility of $\sigma_i = 0.462605$ which is clearly different from the historic one! 
 
 The obvious conclusion is that traders dont follow the naive BS model, especially on longer timescales, as the involved quantities of $\sigma, r$ are not constant in time. However, any modificatiosn to the BS model will modify the form of the underlying the PDE with additional terms, which means that for small timescales, we still expect a stronger match between the BS model and the true mechanisms. 
 
