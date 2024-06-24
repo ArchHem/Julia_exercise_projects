@@ -127,7 +127,7 @@ As derived above, assuming that the real-world market operates according the BS 
 
 If we lived in a world where the BS model is perfect, i.e. we have constatnt historic volatility and all traders followed the derived 'fair pricings' the volatility implied by the options should be constant and equal to the historic volatility as implied by the stock's price changes (see above how it can extracted using LLH minimization). 
 
-For our analysis, we had choosen GOOG, which has widely avaible data and is traded in USD, and has to voting rights (discarding any additional hidden value thus). Most of the data was pulled via Yahoo finance's python public API or was generated via a private nasdaqlink API python script (not part of the repo due to security reasons).
+For our analysis, we had choosen GOOG, which has widely avaible data and is traded in USD, and has no voting rights (discarding any additional hidden value thus). Most of the data was pulled via Yahoo finance's python public API or was generated via a private nasdaqlink API python script (not part of the repo due to security reasons).
 
 Our script has used the compound interest rate of 3-month US treasury bonds as basis for the annual risk free interest rate $r$. 
 
