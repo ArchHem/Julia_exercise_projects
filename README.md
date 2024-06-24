@@ -127,8 +127,28 @@ As derived above, assuming that the real-world market operates according the BS 
 
 If we lived in a world where the BS model is perfect, i.e. we have constatnt historic volatility and all traders followed the derived 'fair pricings' the volatility implied by the options should be constant and equal to the historic volatility as implied by the stock's price changes (see above how it can extracted using LLH minimization). 
 
+For our analysis, we had choosen GOOG, which has widely avaible data and is traded in USD, and has to voting rights (discarding any additional hidden value thus). Most of the data was pulled via Yahoo finance's python public API or was generated via a private nasdaqlink API python script (not part of the repo due to security reasons).
 
+Our script has used the compound interest rate of 3-month US treasury bonds as basis for the annual risk free interest rate $r$. 
 
+For put orders, by numerically inverting the BS-predicted prices, we find a näive volatility surface of:
+
+![BrownianMotion](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/puts_vol_surface.png)
+
+Which exhibits the empirically observed 'volatity smile' and its (slight) skew in terms of strike prices: as evident, its not a plane as predicted by the BS model. 
+
+We have furthermore ran our LLH minimization algorithm on the historic closing prices of GOOG and had determined its historic volatity from 2023-01-01 to 2024-06-23 to have been:
+$\sigma_h = 0.33813$.
+
+The volatility surface above assigns the implied volatility $\sigma_i$ for each put option with strike value $K$ and time-to-maturity $T-t$. The whole of the surface has an average implied volatility of $\sigma_i = 0.462605$ which is clearly different from the historic one! 
+
+The obvious conclusion is that traders dont follow the naive BS model, especially on longer timescales, as the involved quantities of $\sigma, \r$ are not constant in time. However, any modificatiosn to the BS model will modify the form of the underlying the PDE with additional terms, which means that for small timescales, we still expect a stronger match between the BS model and the true mechanisms. 
+
+If we lower our time-window, and only consider options with remaining maturity time lss than 0.2 years, we remove some of this effect, and end up with an average implied volatility of $\sigma_i 0.378286$, which is a much closer match as expected. However, it is apparent that the BS model is not very applicable nor self consistent in the real world, even on shorter timescales!
+
+### TBA - Post-BS models and their implied volatities
+
+### GARCH models
 
 
 
