@@ -121,6 +121,12 @@ Hence, we may rewrite this as:
 
 $C(t)-P(t)= S(t) - \exp{(-r(T-t))} \cdot K$ from which our symetry follows.
 
+### Volatility surfaces and checking for self-consistency
+
+As derived above, assuming that the real-world market operates according the BS model predictions, it is possible to numerically extract the volatility implied by a given option of strike price $K$, maturity time differential $T-t$ and current underlying asset price $S(t)$. 
+
+If we lived in a world where the BS model is perfect, i.e. we have constatnt historic volatility and all traders followed the derived 'fair pricings' the volatility implied by the options should be constant and equal to the historic volatility as implied by the stock's price changes (see above how it can extracted using LLH minimization). 
+
 
 
 
