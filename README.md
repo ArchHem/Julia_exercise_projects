@@ -144,7 +144,7 @@ The volatility surface above assigns the implied volatility $\sigma_i$ for each 
 
 The obvious conclusion is that traders dont follow the naive BS model, especially on longer timescales, as the involved quantities of $\sigma, r$ are not constant in time. However, any modificatiosn to the BS model that accounts for the time dependence of these parameters will only cause change on longer timescales, which means that for small timescales, we still expect a stronger match between the BS model and the true mechanisms. 
 
-If we lower our time-window, and only consider options with remaining maturity time lss than 0.2 years, we remove some of this effect, and end up with an average implied volatility of $\sigma_i 0.378286$, which is a much closer match as expected. However, it is apparent that the BS model is not very applicable nor self consistent in the real world, even on shorter timescales!
+If we lower our time-window, and only consider options with remaining maturity time lss than 0.2 years, we remove some of this effect, and end up with an average implied volatility of $\sigma_i = 0.378286$, which is a much closer match as expected. However, it is apparent that the BS model is not very applicable nor self consistent in the real world, even on shorter timescales!
 
 ### TBA - Post-BS models and their implied volatities
 
