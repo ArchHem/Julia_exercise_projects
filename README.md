@@ -146,7 +146,9 @@ The obvious conclusion is that traders dont follow the naive BS model, especiall
 
 If we lower our time-window, and only consider options with remaining maturity time lss than 0.2 years, we remove some of this effect, and end up with an average implied volatility of $\sigma_i = 0.378286$, which is a much closer match as expected. However, it is apparent that the BS model is not very applicable nor self consistent in the real world, even on shorter timescales!
 
-### TBA - Post-BS models and their implied volatities
+### The Heston Model
+
+### Parameter estimation in the Heston model
 
 ### GARCH models
 
