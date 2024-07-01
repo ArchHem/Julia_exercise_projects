@@ -158,9 +158,39 @@ $dS(t) = \mu S(t) dt + \sqrt{v(t)}dW(t)_s$
 
 The volatility itself is also stochastic. The SDE of its square is a mean-reverting process, given by:
 
-$dv(t) = k(\theta - v(t))+\Xi dW(t)_v$
+$dv(t) = \kappa (\theta - v(t))+\xi dW(t)_v$
 
-$dW_s$ and $dW_v$ are correlated, usually with a negative coefficient $\rho$: this is based on real-life observations, which indicate that a stpchastic decrease in stock price is likely to be due/be accompanied by an increase in effecive volatility. 
+$dW_s$ and $dW_v$ are correlated, usually with a negative coefficient $\rho$: this is based on real-life observations, which indicate that a stochastic decrease in stock price is likely to be due/be accompanied by an increase in effecive volatility. 
+
+Although not proven here, it can be shown that one gets, through the applications of Itô's Lemma and by enforcing the no-risk conditions on a self-financing portfolio, that the SDE for an option price $U$, that is used to hedge against the volatility risk (i.e. not the same as $V$ in the BS model) is:
+
+$\begin{array}{r}
+\frac{\partial U}{\partial t}+\frac{1}{2} v S^2 \frac{\partial^2 U}{\partial S^2}+\rho \sigma v S \frac{\partial^2 U}{\partial v \partial S}+\frac{1}{2} \sigma^2 v \frac{\partial^2 U}{\partial v^2} \\
+-r U+r S \frac{\partial U}{\partial S}+[\kappa(\theta-v)-\lambda(S, v, t)] \frac{\partial U}{\partial v}=0
+\end{array}$
+
+Here, $\lambda(S,v,t)$ denotes the market price for volatility. 
+
+### Numerical solutions and methods
+
+Our overall goal is ot determine the 'fair' price of a European style option with strike price $K$. There are a number of ways of determining this. 
+
+The first, and perhaps most intuitive is using Monte Carlo simulations of the underlying assets. 
+
+Given some ensemble of (simulated) stock prices $S_T^i$, with all the same starting parameters of $S_0, v_0$, we may define the expected payoff, and thus discount price, of a call option, as:
+
+$B_i = \exp{-rT}*max[0,S-K]$. (see the (de)-valiation of money as above.)
+
+Then, we may define the _fair price_ as the mean of these expected payoffs:
+
+$\hat{V} = \frac{1}{N} \sum_i^N B_i$
+
+This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error bounds can be found on $\hat{V}$ as a function of $N$.
+
+
+
+
+
 
 
 ### Parameter estimation in the Heston model
