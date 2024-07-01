@@ -148,6 +148,21 @@ If we lower our time-window, and only consider options with remaining maturity t
 
 ### The Heston Model
 
+The Heston model can be thought of as a an extension of the Black-Scholes model that deals with the problem of non-constnat volatility. It is notable for being able to predict the volatility smile and its skew. 
+
+The Heston model is defined via 2x SDEs.
+
+The asset price, $S(t)$ evolves according to:
+
+$dS(t) = \mu S(t) dt + \sqrt{v(t)}dW(t)_s$
+
+The volatility itself is also stochastic. The SDE of its square is a mean-reverting process, given by:
+
+$dv(t) = k(\theta - v(t))+\Xu dW(t)_v$
+
+$dW_s$ and $dW_v$ are correlated, usually with a negative coefficient $\rho$: this is based on real-life observations, which indicate that a stpchastic decrease in stock price is likely to be due/be accompanied by an increase in effecive volatility. 
+
+
 ### Parameter estimation in the Heston model
 
 ### GARCH models
