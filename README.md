@@ -185,6 +185,8 @@ $V = \frac{1}{N} \sum_i B_i$
 
 This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error bounds can be found on $V$ as a function of $N$.
 
+To simululate the stock prices withing a give time horizon $T$, we must use some form of discretization. The equations of the Heston model can be used either directly to do a forward Euler integration, but there are two ways of executing it: either via using normal asset prices or log-prices. 
+
 
 
 
