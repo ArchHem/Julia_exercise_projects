@@ -164,10 +164,8 @@ $dW_s$ and $dW_v$ are correlated, usually with a negative coefficient $\rho$: th
 
 Although not proven here, it can be shown that one gets, through the applications of Itô's Lemma and by enforcing the no-risk conditions on a self-financing portfolio, that the SDE for an option price $U$, that is used to hedge against the volatility risk (i.e. not the same as $V$ in the BS model) is:
 
-$
-\frac{\partial U}{\partial t}+\frac{1}{2} v S^2 \frac{\partial^2 U}{\partial S^2}+\rho \sigma v S \frac{\partial^2 U}{\partial v \partial S}+\frac{1}{2} \sigma^2 v \frac{\partial^2 U}{\partial v^2} \\
--r U+r S \frac{\partial U}{\partial S}+[\kappa(\theta-v)-\lambda(S, v, t)] \frac{\partial U}{\partial v}=0
-$
+$\frac{\partial U}{\partial t}+\frac{1}{2} v S^2 \frac{\partial^2 U}{\partial S^2}+\rho \sigma v S \frac{\partial^2 U}{\partial v \partial S}+\frac{1}{2} \sigma^2 v \frac{\partial^2 U}{\partial v^2} 
+-r U+r S \frac{\partial U}{\partial S}+[\kappa(\theta-v)-\lambda(S, v, t)] \frac{\partial U}{\partial v}=0$
 
 Here, $\lambda(S,v,t)$ denotes the market price for volatility. 
 
@@ -183,7 +181,7 @@ $B_i = \exp{(-rT)}*max[0,S-K]$. (see the (de)-valiation of money as above.)
 
 Then, we may define the _fair price_ as the mean of these expected payoffs:
 
-$V = 1/N \sum_i^N B_i$
+$V = \frac{1}{N} \sum_{i}^{N} B_i$
 
 This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error bounds can be found on $V$ as a function of $N$.
 
