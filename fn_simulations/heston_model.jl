@@ -45,6 +45,7 @@ function evolve_heston_batch(system::HestonModel,S0::Float64,V0::Float64)
     for i in 1:N_timesteps
         Z_v = randn(N_systems)
         Z_s = p*Z_v + randn(N_systems)*sqrt(1-p^2)
+        
         #fix the dotting errors and keep some memory
         S_new = evolve_heston_prices.(Ref(system),S,V,Z_s)
         V_new = evolve_heston_volats.(Ref(system),S,V,Z_v)
@@ -63,7 +64,7 @@ function evolve_heston_full(system::HestonModel,S0::Float64,V0::Float64,NBatches
     V = V0*ones(N_systems*NBatches)
 
     maxcount = NBatches-1
-    Threads.@threads for k in 0:maxcount
+    Threads.@threads for k in ProgressBar(0:maxcount)
 
         local_prices, local_volats = evolve_heston_batch(system,S0,V0)
         
@@ -81,11 +82,11 @@ end
 
 #display effects of 'tilt'
 
-N_sits = 11
+N_sits = 7
 ps = LinRange(-0.9,0.9,N_sits)
 colors = [RGB(0.1,i/N_sits,1-i/N_sits) for i in 1:N_sits]
 
-NperBatch = 80000
+NperBatch = 160000
 nbins = LinRange(0.0,400,100)
 
 result_prices = Vector{Vector{Float64}}(undef,(N_sits,))
@@ -95,6 +96,7 @@ for o in 1:N_sits
     local examp = HestonModel(0.01,1000,NperBatch,0.25^2,0.08,0.05,0.3,3.0,ps[o])
 
     local S, V = evolve_heston_full(examp,100.0,0.3^2,8)
+    
     lstring = string(round(ps[o]; sigdigits=3))
     if o == 1
         global X = stephist(S,color = colors[o], 
