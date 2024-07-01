@@ -158,7 +158,7 @@ $dS(t) = \mu S(t) dt + \sqrt{v(t)}dW(t)_s$
 
 The volatility itself is also stochastic. The SDE of its square is a mean-reverting process, given by:
 
-$dv(t) = k(\theta - v(t))+\Xu dW(t)_v$
+$dv(t) = k(\theta - v(t))+\Xi dW(t)_v$
 
 $dW_s$ and $dW_v$ are correlated, usually with a negative coefficient $\rho$: this is based on real-life observations, which indicate that a stpchastic decrease in stock price is likely to be due/be accompanied by an increase in effecive volatility. 
 
