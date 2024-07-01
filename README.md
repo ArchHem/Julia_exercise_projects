@@ -183,9 +183,9 @@ $B_i = \exp{(-rT)}*max[0,S-K]$. (see the (de)-valiation of money as above.)
 
 Then, we may define the _fair price_ as the mean of these expected payoffs:
 
-$\hat{V} = 1/N \sum_i^N B_i$
+$V = 1/N \sum_i^N B_i$
 
-This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error bounds can be found on $\hat{V}$ as a function of $N$.
+This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error bounds can be found on $V$ as a function of $N$.
 
 
 
