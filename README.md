@@ -191,7 +191,9 @@ Before we can even discuss integration methods, normal-asset space, and in log-p
 
 If we have a correlation matrix $\boldsymbol{\Sigma}$ ($N x N$) which is symetric and positive-semi-definite by definition, it is possible to find (i.e. via some decomposition scheme, i.e. Cholesky) a matrix $\boldsymbol{A}$ st. $\boldsymbol{\Sigma} = \boldsymbol{A} \boldsymbol{A}^T$. where $\boldsymbol{A}$ is lower triangular. Then, we may generate $N$ random normal variables $\vec{X}'$ correlated by $\Sigma$ via: $\vec{X}' = \boldsymbol{A} \vec{X}$ where $\vec{X}$ are just a vector of $N$ un-correlated random variables. 
 
-### 'Analytic'estimation of option pricing
+I.e. in our case, we may generate $dW_s = N(0,1)_s*\sqrt{dt}, dW_v = N(0,1)_v*\sqrt{dt}$ via first generating $N(0,1)_s$, then generating another indepent random normak variable $N(0,1)_a$, and defining $N(0,1)_v = \rho*N(0,1)_s + \sqrt{1-\rho^2} N(0,1)_a$ to ensure the proper correlation. 
+
+### 'Analytic' estimation of option pricing
 
 
 
