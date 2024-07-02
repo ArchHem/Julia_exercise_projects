@@ -189,7 +189,7 @@ To simululate the stock prices withing a give time horizon $T$, we must use some
 
 Before we can even discuss integration methods, normal-asset space, and in log-price space, we have the 'problem' of generating correlated normally distributed variables of an arbitrary number $N$. (in this case, $N = 2$).
 
-If we have a correlation matrix $\Sigma$ ($N \cross N$) (i.e. if given a covariance matrix $\Pi$, we define $\Sigma$ as $\Sigma_{ij} = \Pi_{ij}/(\sigma_i \sigma_j)$) which is symetric and positive-semi-definite by definition, it is possible to find (i.e. via some decomposition scheme, i.e. Cholesky) a matrix $A$ st. $\Sigma = A A^T$. where $A$ is lower triangular. Then, we may generate $N$ random normal variables $\vec{X}'$ correlated by $\Sigma$ via: $\vec{X}' = \boldsymbol{A} \vec{X}$ where $\vec{X}$ are just a vector of $N$ un-correlated random variables. 
+If we have a correlation matrix $\boldsymbol{\Sigma}$ ($N x N$) (i.e. if given a covariance matrix $\boldsymbol{\Pi}$, we define $\Sigma$ as $\Sigma_{ij} = \Pi_{ij}/(\sigma_i \sigma_j)$) which is symetric and positive-semi-definite by definition, it is possible to find (i.e. via some decomposition scheme, i.e. Cholesky) a matrix $A$ st. $\Sigma = A A^T$. where $A$ is lower triangular. Then, we may generate $N$ random normal variables $\vec{X}'$ correlated by $\Sigma$ via: $\vec{X}' = \boldsymbol{A} \vec{X}$ where $\vec{X}$ are just a vector of $N$ un-correlated random variables. 
 
 ### 'Analytic'estimation of option pricing
 
