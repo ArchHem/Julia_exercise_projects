@@ -177,17 +177,21 @@ The first, and perhaps most intuitive is using Monte Carlo simulations of the un
 
 Given some ensemble of (simulated) stock prices $S_T^i$, with all the same starting parameters of $S_0, v_0$, we may define the expected payoff, and thus discount price, of a call option, as:
 
-$B_i = \exp{(-rT)}*max[0,S-K]$. (see the (de)-valiation of money as above.)
+$B_i = \exp{(-rT)}*max[0,S-K]$. (see the (de)-valuation of money as above.)
 
 Then, we may define the _fair price_ as the mean of these expected payoffs:
 
-$V = \frac{1}{N} \sum_i B_i$
+$\hat{U} = \frac{1}{N} \sum_i B_i$
 
-This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error bounds can be found on $V$ as a function of $N$.
+This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error estimates can be found on $\hat{U}$ as a function of $N$.
 
 To simululate the stock prices withing a give time horizon $T$, we must use some form of discretization. The equations of the Heston model can be used either directly to do a forward Euler integration, but there are two ways of executing it: either via using normal asset prices or log-prices. 
 
+Before we can even discuss integration methods, normal-asset space, and in log-price space, we have the 'problem' of generating correlated normally distributed variables of an arbitrary number $N$. (in this case, $N = 2$).
 
+If we have a correlation matrix $\Sigma$ ($N \cross N$) (i.e. if given a covariance matrix $\Pi$, we define $\Sigma$ as $\Sigma_{ij} = \Pi_{ij}/(\sigma_i \sigma_j)$) which is symetric and positive-semi-definite by definition, it is possible to find (i.e. via some decomposition scheme, i.e. Cholesky) a matrix $A$ st. $\Sigma = A A^T$. where $A$ is lower triangular. Then, we may generate $N$ random normal variables $\vec{X}'$ correlated by $\Sigma$ via: $\vec{X}' = \boldsymbol{A} \vec{X}$ where $\vec{X}$ are just a vector of $N$ un-correlated random variables. 
+
+### 'Analytic'estimation of option pricing
 
 
 
