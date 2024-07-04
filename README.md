@@ -200,11 +200,12 @@ $V_{i+1} = \kappa (\theta - V_i) + \xi \sqrt{V_i \Delta t} N(0,1)_v$
 
 Where we generated $N(0,1)_s, N(0,1)_v$ according to the above correlation inducing scheme, with correlation coefficient $\rho$.
 
-Notice that $V_{i+1}$ can theoretically become negative (albeit with a very small chance for small dt-s) - this is purely a consequence of discretization. We need to enforce the positivity of the volatility via either taking the absolute value $S_{i+1}$ before the next step, or via taking $max(S,0)$. 
+Notice that $V_{i+1}$ can theoretically become negative (albeit with a very small chance for small dt-s) - this is purely a consequence of discretization. We need to enforce the positivity of the volatility via either taking the absolute value $S_{i+1}$ before the next step, or via taking $max(V_{i+1},0)$ ('ReLu'). 
 
 Itô's Lemma can be used to evolve the log-prices instead. A quick computation of $d \log(S)$ yields us the discretization scheme of:
 
 $S_{i+1} = S_i \exp{(\mu -0.5 V_i) \Delta t + \sqrt{V_i \Delta t} N(0,1)_s}$ 
+
 $V_{i+1} = \kappa (\theta - V_i) + \xi \sqrt{V_i \Delta t} N(0,1)_v$
 
 Both have differenent advantages. Generally speaking, evolving the log-prices is more accurate (for instance, it can not produce negative stock prices), but it is computationally more expensive. 
