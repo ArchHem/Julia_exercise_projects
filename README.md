@@ -217,6 +217,12 @@ There are other discretization schemes. Of noteworthiness, we have methods that 
 
 ### Results of Euler-based Monte Carlo Runs
 
+We first began to explore the effects of varying $\rho$ and leaving all other parameters constant. The following plots were produced using parameters typical of post-2015 (but pre-covid) stocks. Each Monte Carlo simulation bellow was run with 8x160000 paths, taking an approximate total of 8 seconds to run on my current laptop. 
+
+![rho_effects](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_rho_dependence_3.png)
+
+As we can see, a larger correlation leads to stock prices generally trending to _lower_ values. The reason for this is relatively simple: a postive correlation means that a stochastic increase in stock price is likely to be accompanied by an increase in volatility, which in turn will mean that _on average_ the evolution of the log-stock prices will result in lower values, as we can see in the Euler step above. 
+
 
 ### 'Analytic' estimation of option pricing
 
