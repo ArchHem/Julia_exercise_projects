@@ -196,6 +196,9 @@ I.e. in our case, we may generate $dW_s = N(0,1)_s*\sqrt{dt}, dW_v = N(0,1)_v*\s
 Simple discretization yields the Euler update scheme of:
 
 $S_{i+1} = \mu S_i \Delta t + \sqrt{V_i \Delta t} N(0,1)_s$ 
+
+and 
+
 $V_{i+1} = \kappa (\theta - V_i) + \xi \sqrt{V_i \Delta t} N(0,1)_v$
 
 Where we generated $N(0,1)_s, N(0,1)_v$ according to the above correlation inducing scheme, with correlation coefficient $\rho$.
