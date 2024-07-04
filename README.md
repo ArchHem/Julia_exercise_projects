@@ -199,7 +199,7 @@ $S_{i+1} = \mu S_i \Delta t + \sqrt{V_i \Delta t} N(0,1)_s$
 
 and 
 
-$V_{i+1} = \kappa (\theta - V_i) + \xi \sqrt{V_i \Delta t} N(0,1)_v$
+$V_{i+1} = \kappa (\theta - V_i) \Delta t + \xi \sqrt{V_i \Delta t} N(0,1)_v$
 
 Where we generated $N(0,1)_s, N(0,1)_v$ according to the above correlation inducing scheme, with correlation coefficient $\rho$.
 
@@ -209,7 +209,7 @@ Itô's Lemma can be used to evolve the log-prices instead. A quick computation o
 
 $S_{i+1} = S_i \exp{(\mu -0.5 V_i) \Delta t + \sqrt{V_i \Delta t} N(0,1)_s}$ 
 
-$V_{i+1} = \kappa (\theta - V_i) + \xi \sqrt{V_i \Delta t} N(0,1)_v$
+$V_{i+1} = \kappa (\theta - V_i) \Delta t + \xi \sqrt{V_i \Delta t} N(0,1)_v$
 
 Both have differenent advantages. Generally speaking, evolving the log-prices is more accurate (for instance, it can not produce negative stock prices), but it is computationally more expensive. 
 
