@@ -183,7 +183,7 @@ Then, we may define the _fair price_ as the mean of these expected payoffs:
 
 $\hat{U} = \frac{1}{N} \sum_i B_i$
 
-This remarkably only involves solving the underlying PDE, but does not need or require to find the PDE on the option itself. Furthermore, strong error estimates can be found on $\hat{U}$ as a function of $N$.
+This remarkably only involves solving the underlying SDE of the asset, but does not need or require to find the PDE on the option itself. Furthermore, strong error estimates can be found on $\hat{U}$ as a function of $N$.
 
 To simululate the stock prices withing a give time horizon $T$, we must use some form of discretization. The equations of the Heston model can be used either directly to do a forward Euler integration, but there are two ways of executing it: either via using normal asset prices or log-prices. 
 
@@ -192,6 +192,25 @@ Before we can even discuss integration methods, normal-asset space, and in log-p
 If we have a correlation matrix $\boldsymbol{\Sigma}$ ($N x N$) which is symetric and positive-semi-definite by definition, it is possible to find (i.e. via some decomposition scheme, i.e. Cholesky) a matrix $\boldsymbol{A}$ st. $\boldsymbol{\Sigma} = \boldsymbol{A} \boldsymbol{A}^T$. where $\boldsymbol{A}$ is lower triangular. Then, we may generate $N$ random normal variables $\vec{X}'$ correlated by $\Sigma$ via: $\vec{X}' = \boldsymbol{A} \vec{X}$ where $\vec{X}$ are just a vector of $N$ un-correlated random variables. 
 
 I.e. in our case, we may generate $dW_s = N(0,1)_s*\sqrt{dt}, dW_v = N(0,1)_v*\sqrt{dt}$ via first generating $N(0,1)_s$, then generating another indepent random normak variable $N(0,1)_a$, and defining $N(0,1)_v = \rho*N(0,1)_s + \sqrt{1-\rho^2} N(0,1)_a$ to ensure the proper correlation. 
+
+Simple discretization yields the Euler update scheme of:
+
+$S_{i+1} = \mu S_i \Delta t + \sqrt{V_i \Delta t} N(0,1)_s$ 
+$V_{i+1} = \kappa (\theta - V_i) + \xi \sqrt{V_i \Delta t} N(0,1)_v$
+
+Where we generated $N(0,1)_s, N(0,1)_v$ according to the above correlation inducing scheme, with correlation coefficient $\rho$.
+
+Notice that $V_{i+1}$ can theoretically become negative (albeit with a very small chance for small dt-s) - this is purely a consequence of discretization. We need to enforce the positivity of the volatility via either taking the absolute value $S_{i+1}$ before the next step, or via taking $max(S,0)$. 
+
+Itô's Lemma can be used to evolve the log-prices instead. A quick computation of $d \log(S)$ yields us the discretization scheme of:
+
+$S_{i+1} = S_i \exp{(\mu -0.5 V_i) \Delta t + \sqrt{V_i \Delta t} N(0,1)_s}$ 
+$V_{i+1} = \kappa (\theta - V_i) + \xi \sqrt{V_i \Delta t} N(0,1)_v$
+
+Both have differenent advantages. Generally speaking, evolving the log-prices is more accurate (for instance, it can not produce negative stock prices), but it is computationally more expensive. 
+
+There are other discretization schemes. Of noteworthiness, we have methods that use a higher-order expansion of a stochastic differential, i.e. higher order versions of Itô's Lemma. 
+
 
 ### 'Analytic' estimation of option pricing
 
