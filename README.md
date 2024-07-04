@@ -217,7 +217,7 @@ There are other discretization schemes. Of noteworthiness, we have methods that 
 
 ### Results of Euler-based Monte Carlo Runs
 
-We first began to explore the effects of varying $\rho$ and leaving all other parameters constant. The following plots were produced using parameters typical of post-2015 (but pre-covid) stocks. Each Monte Carlo simulation bellow was run with 8x160000 paths, taking an approximate total of 8 seconds to run on my current laptop. 
+We first began to explore the effects of varying $\rho$ and leaving all other parameters constant. The following plots were produced using parameters typical of post-2015 (but pre-covid) stocks. Each Monte Carlo simulation bellow was run with 8x160000 paths, taking an approximate total of 8 seconds to run for all values of $\rho$ on my current laptop. 
 
 ![rho_effects](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_rho_dependence_3.png)
 
