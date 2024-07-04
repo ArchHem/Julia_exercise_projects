@@ -1,3 +1,4 @@
+module Heston_support
 using ProgressBars, StaticArrays, Plots, Statistics, CSV, DataFrames, Statistics, Dates, Optim, LaTeXStrings, SpecialFunctions, Roots
 
 struct HestonModel
@@ -77,39 +78,17 @@ function evolve_heston_full(system::HestonModel,S0::Float64,V0::Float64,NBatches
     return S, V
 end
 
-    
+
+#dirty metaprogramming trick if we want to export everything!
+
+#exported_names = names(@__MODULE__, all=true) .|> Symbol
+
+#eval(Expr(:export, exported_names...))
+
+#module end 
 
 
-#display effects of 'tilt'
-
-N_sits = 7
-ps = LinRange(-0.9,0.9,N_sits)
-colors = [RGB(0.1,i/N_sits,1-i/N_sits) for i in 1:N_sits]
-
-NperBatch = 160000
-nbins = LinRange(0.0,400,100)
-
-result_prices = Vector{Vector{Float64}}(undef,(N_sits,))
-
-for o in 1:N_sits
-
-    local examp = HestonModel(0.01,1000,NperBatch,0.25^2,0.08,0.05,0.3,3.0,ps[o])
-
-    local S, V = evolve_heston_full(examp,100.0,0.3^2,8)
-    
-    lstring = string(round(ps[o]; sigdigits=3))
-    if o == 1
-        global X = stephist(S,color = colors[o], 
-        xlim = [0,400], normalize=:pdf,
-        label = L"$\rho =$"*lstring, bins = nbins, xlabel = "S", ylabel = "P(S)",
-        dpi = 1600)
-    else
-        stephist!(X,S,color = colors[o], xlim = [0,400], 
-        normalize=:pdf, label = L"$\rho =$"*lstring, bins = nbins)
-    end
 end
-
-display(X)
 
 
 
