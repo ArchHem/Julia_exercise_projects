@@ -213,21 +213,18 @@ $V_{i+1} = \kappa (\theta - V_i) \Delta t + \xi \sqrt{V_i \Delta t} N(0,1)_v$
 
 Both have differenent advantages. Generally speaking, evolving the log-prices is more accurate (for instance, it can not produce negative stock prices), but it is computationally more expensive. 
 
-There are other discretization schemes. Of noteworthiness, we have methods that use a higher-order expansion of a stochastic differential, i.e. higher order versions of Itô's Lemma. 
+There are other discretization schemes. Of noteworthiness, we have methods that use a higher-order expansion of a stochastic differential, i.e. iterative applications of Itô's Lemma. An example of such a method - the so called _Milstein Scheme_ can be found at [a document written by Fabrice Douglas Rouah](https://frouah.com/finance%20notes/Euler%20and%20Milstein%20Discretization.pdf). Our codebase does not implement this method. 
+
+### Results of Euler-based Monte Carlo Runs
 
 
 ### 'Analytic' estimation of option pricing
 
 
-
-
-
 ### Parameter estimation in the Heston model
 
+
 ### GARCH models
-
-
-
 
 
 
