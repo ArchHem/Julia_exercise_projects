@@ -223,6 +223,16 @@ We first began to explore the effects of varying $\rho$ and leaving all other pa
 
 As we can see, a larger correlation leads to stock prices generally trending to _lower_ values. The reason for this is relatively simple: a postive correlation means that a stochastic increase in stock price is likely to be accompanied by an increase in volatility, which in turn will mean that _on average_ the evolution of the log-stock prices will result in lower values, as we can see in the Euler step above. 
 
+![S_K_call](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_put_K_S.png)
+
+Distribution of numerically estimated (20000 simulations/point) put option distribution as a function of strike $K$ and current stock price $S$. 40x40 grid.
+
+![S_K_call](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_put_V_K.png)
+
+Distribution of numerically estimated (20000 simulations/point) put option distribution as a function of strike $K$ and starting volatility $V_0$. 40x40 grid. Note relatively higher amounts of noise compared to previous scheme - it is advised we use more samples.
+
+
+
 
 ### 'Analytic' estimation of option pricing
 
