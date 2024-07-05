@@ -231,7 +231,7 @@ Distribution of numerically estimated (20000 simulations/point) put option distr
 
 Distribution of numerically estimated (20000 simulations/point) put option distribution as a function of strike $K$ and starting volatility $V_0$. 40x40 grid. Note relatively higher amounts of noise compared to previous scheme - it is advised we use more samples.
 
-
+Similar plots are generated for the call options, but we are not including them here due to redundancy.
 
 
 ### 'Analytic' estimation of option pricing
