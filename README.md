@@ -207,7 +207,7 @@ Notice that $V_{i+1}$ can theoretically become negative (albeit with a very smal
 
 Itô's Lemma can be used to evolve the log-prices instead. A quick computation of $d \log(S)$ yields us the discretization scheme of:
 
-$S_{i+1} = S_i \exp{(\mu -0.5 V_i) \Delta t + \sqrt{V_i \Delta t} N(0,1)_s}$ 
+$S_{i+1} = S_i \exp{((\mu -0.5 V_i) \Delta t + \sqrt{V_i \Delta t} N(0,1)_s})$ 
 
 $V_{i+1} = \kappa (\theta - V_i) \Delta t + \xi \sqrt{V_i \Delta t} N(0,1)_v$
 
