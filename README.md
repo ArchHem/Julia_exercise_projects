@@ -239,7 +239,7 @@ Distribution of numerically estimated (20000 simulations/point) put option distr
 
 The dependence between the 'volatility of volatiliy' and the fair option price is a lot more subtle then the other relations (we will see in the bellow section).
 
-![XI_K_call][https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_call_Xi_K.png]
+![XI_K_call](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_call_Xi_K.png)
 
 Perhaps the most important relation is between the strike price, the long-standing stable volatility $\theta$ and the strike price K.
 
