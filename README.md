@@ -127,24 +127,30 @@ As derived above, assuming that the real-world market operates according the BS 
 
 If we lived in a world where the BS model is perfect, i.e. we have constatnt historic volatility and all traders followed the derived 'fair pricings' the volatility implied by the options should be constant and equal to the historic volatility as implied by the stock's price changes (see above how it can extracted using LLH minimization). 
 
-For our analysis, we had choosen GOOG, which has widely avaible data and is traded in USD, and has no voting rights (discarding any additional hidden value thus). Most of the data was pulled via Yahoo finance's python public API or was generated via a private nasdaqlink API python script (not part of the repo due to security reasons).
+For our analysis, we had chosen the S&P 500 index as it has a magnitude of European-style options. We know that for indeces, the assumptions of the Black-Scholes model do not work exactly (most member shares play dividends and may have 'hidden' value such as voting rights), but the underlying stochastic mechanics should still stand for an index. 
 
-Our script has used the compound interest rate of 3-month US treasury bonds as basis for the annual risk free interest rate $r$. 
+By using the analytic result for the European fair price of an option as a function of its time to maturity, its strike and current price (in relation to the current asset price), we may invert for the volatility _implied_ by a certain option's parameters using numerical rootfinding. The resulting volatility 'surface' is most often plotted as a function of T and K.
 
-For put orders, by numerically inverting the BS-predicted prices, we find a näive volatility surface of:
+We find, for put orders, the volatility surface of:
 
-![BrownianMotion](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/puts_vol_surface.png)
+[SPX_1](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_02.png)
 
-Which exhibits the empirically observed 'volatity smile' and its (slight) skew in terms of strike prices: as evident, its not a plane as predicted by the BS model. 
+Zooming in, we see:
 
-We have furthermore ran our LLH minimization algorithm on the historic closing prices of GOOG and had determined its historic volatity from 2023-01-01 to 2024-06-23 to have been:
-$\sigma_h = 0.33813$.
+[SPX_2](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_03.png)
 
-The volatility surface above assigns the implied volatility $\sigma_i$ for each put option with strike value $K$ and time-to-maturity $T-t$. The numerical artefacts of zero volatility are due to the root-finder involved and are discarded for future analysis. The whole of the surface has an average implied volatility of $\sigma_i = 0.462605$ which is clearly different from the historic one! 
+From another (distored) angle:
 
-The obvious conclusion is that traders dont follow the naive BS model, especially on longer timescales, as the involved quantities of $\sigma, r$ are not constant in time. However, any modificatiosn to the BS model that accounts for the time dependence of these parameters will only cause change on longer timescales, which means that for small timescales, we still expect a stronger match between the BS model and the true mechanisms. 
+[SPX_3](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_04.png)
 
-If we lower our time-window, and only consider options with remaining maturity time lss than 0.2 years, we remove some of this effect, and end up with an average implied volatility of $\sigma_i = 0.378286$, which is a much closer match as expected. However, it is apparent that the BS model is not very applicable nor self consistent in the real world, even on shorter timescales!
+From the plots, it is clear volatitly depends on the strike price and maturity time of the option, unlike the prediction by the BS model. The 'parabolic' spread of volatilities is known as the _volatility smile_ or in case of noticable skew, the volatility _smirk_. The beheviour of this skew is best seen on a 'zoomed out' plot as bellow. 
+
+[SPX_base](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_surface.png)
+
+
+So, it is apparent that the BS model fails to predict the non-constant volatility of options. Furthermore, the calculated historic volatility (roughly 0.143 in this case) differs from the averege volatility (or at least in cases where the rootfinder converged) of the options, which is much higher, around 0.243 (all quantities expressed in annual basis). 
+
+
 
 ### The Heston Model
 
