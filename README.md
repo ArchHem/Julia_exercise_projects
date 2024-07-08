@@ -237,7 +237,15 @@ Distribution of numerically estimated (20000 simulations/point) put option distr
 
 Distribution of numerically estimated (20000 simulations/point) put option distribution as a function of strike $K$ and starting volatility $V_0$. 40x40 grid. Note relatively higher amounts of noise compared to previous scheme - it is advised we use more samples.
 
+The dependence between the 'volatility of volatiliy' and the fair option price is a lot more subtle then the other relations (we will see in the bellow section).
+
+![XI_K_call][https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_call_Xi_K.png]
+
+Perhaps the most important relation is between the strike price, the long-standing stable volatility $\theta$ and the strike price K.
+
 Similar plots are generated for the call options, but we are not including them here due to redundancy.
+
+
 
 
 ### 'Analytic' estimation of option pricing
