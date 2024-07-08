@@ -133,19 +133,19 @@ By using the analytic result for the European fair price of an option as a funct
 
 We find, for put orders, the volatility surface of:
 
-[SPX_1](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_02.png)
+![SPX_1](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_02.png)
 
 Zooming in, we see:
 
-[SPX_2](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_03.png)
+![SPX_2](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_03.png)
 
 From another (distored) angle:
 
-[SPX_3](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_04.png)
+![SPX_3](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_04.png)
 
 From the plots, it is clear volatitly depends on the strike price and maturity time of the option, unlike the prediction by the BS model. The 'parabolic' spread of volatilities is known as the _volatility smile_ or in case of noticable skew, the volatility _smirk_. The beheviour of this skew is best seen on a 'zoomed out' plot as bellow. 
 
-[SPX_base](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_surface.png)
+![SPX_base](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/SPX_volat_surface.png)
 
 
 So, it is apparent that the BS model fails to predict the non-constant volatility of options. Furthermore, the calculated historic volatility (roughly 0.143 in this case) differs from the averege volatility (or at least in cases where the rootfinder converged) of the options, which is much higher, around 0.243 (all quantities expressed in annual basis). 
