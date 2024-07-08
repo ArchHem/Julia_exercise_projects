@@ -249,6 +249,10 @@ Similar plots are generated for the call options, but we are not including them 
 
 ### 'Analytic' estimation of option pricing
 
+The PDE predicted by the Heston model can be solved in a number of ways. In the original paper, Heston proposes a 'guess' solution in terms of the new variables, defined as:
+
+$\tau = T-t, x = \log{S}$
+
 
 
 
