@@ -241,14 +241,15 @@ The dependence between the 'volatility of volatiliy' and the fair option price i
 
 ![XI_K_call](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_call_Xi_K.png)
 
-Perhaps the most important relation is between the strike price, the long-standing stable volatility $\theta$ and the strike price K.
+Perhaps the most important relation is between the strike price, the long-standing stable volatility $\theta$ and the strike price K. For a put option of fixed lifetime T, we get the price surface of:
+
+![Theta_K_put](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_put_Theta_k.png)
 
 Similar plots are generated for the call options, but we are not including them here due to redundancy.
 
-
-
-
 ### 'Analytic' estimation of option pricing
+
+
 
 
 ### Parameter estimation in the Heston model
