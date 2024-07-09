@@ -257,6 +257,11 @@ We assume that the market price of the volatility is simply a linear function s.
 
 In terms of our new variables, the PDE reduces to:
 
+$\frac{\partial U}{\partial t}+\frac{1}{2} v \frac{\partial^2 U}{\partial x^2}+\left(r-\frac{1}{2} v\right) \frac{\partial U}{\partial x}+\rho \sigma v \frac{\partial^2 U}{\partial v \partial x}
+\frac{1}{2} \sigma^2 v \frac{\partial^2 U}{\partial v^2}-r U+[\kappa(\theta-v)-\lambda v] \frac{\partial U}{\partial v}=0$
+
+
+
 
 
 
