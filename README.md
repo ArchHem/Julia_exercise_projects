@@ -253,6 +253,10 @@ The PDE predicted by the Heston model can be solved in a number of ways. In the 
 
 $\tau = T-t, x = \log{S}$
 
+We assume that the market price of the volatility is simply a linear function s.t. $\lambda = \lambda v$
+
+In terms of our new variables, the PDE reduces to:
+
 
 
 
