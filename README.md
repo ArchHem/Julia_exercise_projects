@@ -287,7 +287,7 @@ and
 
 $\frac{\partial C_j}{\partial \tau} =r i \phi+a D_j$ 
 
-i.e. if we solve for $D_j, the solution for C_j reduces to a simple integration. Due to the boundary conditions on these terms (namely, if the time to expiry is zero, these terms all must go to zero by definition), we can obtain analytic solutions of the form:
+i.e. if we solve for $D_j$, the solution for $C_j$ reduces to a simple integration. Due to the boundary conditions on these terms (namely, if the time to expiry is zero, these terms all must go to zero by definition), we can obtain analytic solutions of the form:
 
 $D_j=\frac{b_j-\rho \sigma i \phi+d_j}{\sigma^2}\left(\frac{1-e^{d_j \tau}}{1-g_j e^{d_j \tau}}\right) .$
 where
@@ -295,7 +295,7 @@ $d_j=\sqrt{\left(\rho \sigma i \phi-b_j\right)^2-\sigma^2\left(2 u_j i \phi-\phi
 and 
 $g_j=\frac{b_j-\rho \sigma i \phi+d_j}{b_j-\rho \sigma i \phi-d_j}$
 
-Thus, the solution for $C_J$ becomes, under the same BC's:
+Thus, the solution for $C_j$ becomes, under the same BC's:
 
 $C_j=r i \phi \tau+\frac{a}{\sigma^2}\left[\left(b_j-\rho \sigma i \phi+d_j\right) \tau-2 \ln \left(\frac{1-g_j e^{d_j \tau}}{1-g_j}\right)\right]$
 
