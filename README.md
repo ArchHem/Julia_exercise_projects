@@ -281,11 +281,11 @@ where $\phi$ is the transformed/fourier variable. It can be shown that $f_j$ fol
 I.e., in the transformed domain, we get (riccati form) ODEs of the form:
 
 
-$\frac{\partial D_j}{\partial \tau} & =\rho \sigma i \phi D_j-\frac{1}{2} \phi^2+\frac{1}{2} \sigma^2 D_j^2+u_j i \phi-b_j D_j $
+$\frac{\partial D_j}{\partial \tau} =\rho \sigma i \phi D_j-\frac{1}{2} \phi^2+\frac{1}{2} \sigma^2 D_j^2+u_j i \phi-b_j D_j $
 
 and 
 
-$\frac{\partial C_j}{\partial \tau} & =r i \phi+a D_j$ 
+$\frac{\partial C_j}{\partial \tau} =r i \phi+a D_j$ 
 
 i.e. if we solve for $D_j, the solution for C_j reduces to a simple integration. Due to the boundary conditions on these terms (namely, if the time to expiry is zero, these terms all must go to zero by definition), we can obtain analytic solutions of the form:
 
