@@ -324,7 +324,7 @@ Using this, we can construct an analytical solution for the charactestic functio
 
 ## Quasi-general raycasting in General Relatvity
 
--Home built, high-performace GR raycaster and visualizer, centered around the ADM formalism of General Relativity
+-Home built, mid-performace (CPU) GR raycaster and visualizer, centered around the ADM formalism of General Relativity
 
 -For the relevancy to this project, the formalism by Richard Arnowitt, Stanley Deser and Charles W. Misner 'decouples' the timelike coordinate from the rest of the spacelike coordinates, thus reducing the number of euqtions of motion from 8 to 6, by eliminating the geodesic equation of the temporal coordinate. 
 
