@@ -269,7 +269,7 @@ $\Pi_1 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(u) exp{-(i u \log{k})} / (i*u)) du$
 
 and 
 
-$\Pi_2 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(i-u) exp{-(i u \log{k})} / (i*u*f_{\tau}(-i))) du$
+$$\Pi_2 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(i-u) exp{-(i u \log{k})} / (i*u*f_{\tau}(-i))) du$$
 
 
 
