@@ -251,11 +251,19 @@ Similar plots are generated for the call options, but we are not including them 
 
 The PDE predicted by the Heston model can be solved in a number of ways. In the original paper, Heston proposes a 'guess' solution in terms of the new variables, defined as:
 
-$\tau = T-t, x = \log{S}$
+$\tau = T-t, X = \log{S}$
 
-We assume that the market price of the volatility is simply a linear function s.t. $\lambda = \lambda v$
+We then propose, based on similar results in the BS model, that the characteristic function of the asset's price $X$ has the form:
 
-In terms of our new variables, the PDE reduces to:
+$f(\tau, x, v)=\exp \{\alpha(\tau ) v +\beta(\tau)\} \exp \{i \phi x\}$ where $\phi$ is the transformed variable. 
+
+For more details on how this solution is guessed from the log-PDE's form, see [this](https://uregina.ca/~kozdron/Teaching/Regina/441Fall14/Notes/L35-Nov28.pdf) paper by Prof. Michael Kozdron. 
+
+Plugging this guess back into the (transformed) PDE, one gets that its exact functional form can be represented as:
+
+\frac{\exp \left\{i \phi x-\frac{\left(i \phi+\phi^2\right) v}{\gamma \operatorname{coth}\left(\frac{\gamma(\tau)}{2}\right)+(a-i \sigma \rho \phi)}+\frac{a b(a-i \sigma \rho \phi)(\tau)}{\sigma^2}+i \phi \mu(\tau)\right\}}{\left(\cosh \left(\frac{\gamma(\tau)}{2}\right)+\frac{a-i \sigma \rho \phi}{\gamma} \sinh \left(\frac{\gamma(\tau)}{2}\right)\right)^{\frac{2 a b}{\sigma^2}}} 
+
+
 
 
 
