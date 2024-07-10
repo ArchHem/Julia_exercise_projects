@@ -279,6 +279,10 @@ The method we used is known as the Carr-Madan method. This involves introducing 
 
 All that remains now is to check whether the method of the characteristic function's predictions for the option prices (call, in this case). 
 
+![heston_fft](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/Heston_FFT_call_02.png)
+
+As we can see, the MC and FFT methods overlap (almost) perfectly. In fact, only for options far-in-the-money (i.e. $K >>> S_0$) is there any notable difference where both suffer from some-fat tail effects. 
+
 The FFT method offers a number of improvements over the MC method of option pricing: most notably, it is easier to 'invert', that is, determine a (single) unknown Heston parameter from the option price (assuming it was priced according to the said model).
 
 ### Parameter estimation in the Heston model
