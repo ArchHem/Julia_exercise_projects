@@ -267,9 +267,9 @@ where we can express $\Pi_j$ as integrals of the characteristic function st.:
 
 $\Pi_1 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(u) exp{-(i u \log{k})} / (i*u)) du$
 
-and 
+and as: 
 
-$$\Pi_2 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(i-u) exp{-(i u \log{k})} / (i*u*f_{\tau}(-i))) du$$
+$\Pi_2 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(i-u) exp{-(i u \log{k})} / (i*u*f(-i))) du$
 
 
 
