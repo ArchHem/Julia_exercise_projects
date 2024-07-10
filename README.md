@@ -259,9 +259,15 @@ $f(\tau, x, v)=\exp \{\alpha(\tau ) v +\beta(\tau)\} \exp \{i \phi x\}$ where $\
 
 For more details on how this solution is guessed from the log-PDE's form, see [this](https://uregina.ca/~kozdron/Teaching/Regina/441Fall14/Notes/L35-Nov28.pdf) paper by Prof. Michael Kozdron. 
 
-Plugging this guess back into the (transformed) PDE, one gets that its exact functional form can be represented as:
+Having obtained exact functional form of $f(\phi, X, )$ (nor represented here due to sheer size) it can be shown that the call option price can be [represented](https://www.sciencedirect.com/science/article/abs/pii/S0304405X99000501) as:
 
-\frac{\exp \left\{i \phi x-\frac{\left(i \phi+\phi^2\right) v}{\gamma \coth \left(\frac{\gamma(\tau)}{2}\right)+(a-i \sigma \rho \phi)}+\frac{a b(a-i \sigma \rho \phi)(\tau)}{\sigma^2}+i \phi \mu(\tau)\right\}}{\left(\cosh \left(\frac{\gamma(\tau)}{2}\right)+\frac{a-i \sigma \rho \phi}{\gamma} \sinh \left(\frac{\gamma(\tau)}{2}\right)\right)^{\frac{2 a b}{\sigma^2}}} 
+$C = \Pi_1 S + exp{-r*\tau}*\Pi_2 * K$
+
+where we can express $\Pi_j$ as integrals of the characteristic function st.:
+
+
+
+
 
 
 
