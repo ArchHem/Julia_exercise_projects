@@ -1,5 +1,7 @@
 module Heston_support
-using ProgressBars, StaticArrays, Plots, Statistics, CSV, DataFrames, Statistics, Dates, Optim, LaTeXStrings, SpecialFunctions, Roots
+using ProgressBars, Optim, SpecialFunctions, Roots, FFTW
+
+export HestonModel, evolve_heston_batch, evolve_heston_full, eval_call_option
 
 struct HestonModel
     dt::Float64
@@ -78,6 +80,52 @@ function evolve_heston_full(system::HestonModel,S0::Float64,V0::Float64,NBatches
     return S, V
 end
 
+function eval_call_option(S_current::Float64,V_current::Float64,K::Float64, model::HestonModel, lambda::Float64,
+    max_freq::Float64 = 1000.0,N_freqs::Int64 = 2^10)
+    #lambda: coefficient of the linear function of the market cost for the volatility
+
+    rho = model.p
+    r = model.r
+    sigma = model.epsilon
+    k = model.k
+    theta = model.theta
+    T = model.dt*model.NTimeSteps
+
+    u1 = 0.5
+    u2 = -0.5
+
+    a = k*theta
+    b1 = k + lambda - rho*sigma
+    b2 = k + lambda
+
+    d1(phi) = sqrt((im*rho*sigma*phi-b1)^2 -sigma^2 * (2*u1*im*phi  - phi^2))
+    d2(phi) = sqrt((im*rho*sigma*phi-b2)^2 -sigma^2 * (2*u2*im*phi  - phi^2))
+
+    g1(phi) = (b1-rho*sigma*im*phi+d1(phi)) / (b1-rho*sigma*im*phi - d1(phi))
+    g2(phi) = (b2-rho*sigma*im*phi+d2(phi)) / (b2-rho*sigma*im*phi - d2(phi))
+
+    D1(phi) = (b1-rho*sigma*im*phi + d1(phi)) / sigma^2 * (1-exp(d1(phi)*T))/(1-g1(phi)*exp(d1(phi)*T))
+    D2(phi) = (b2-rho*sigma*im*phi + d2(phi)) / sigma^2 * (1-exp(d2(phi)*T))/(1-g2(phi)*exp(d2(phi)*T))
+
+    C1(phi) = r*im*phi*T + a / sigma^2 * ((b1-rho*im*sigma*phi + d1(phi))*T -2 * log((1-g1(phi)*exp(d1(phi)*T))/(1-g1(phi))))
+    C2(phi) = r*im*phi*T + a / sigma^2 * ((b2-rho*im*sigma*phi + d2(phi))*T -2 * log((1-g2(phi)*exp(d2(phi)*T))/(1-g2(phi))))
+
+    x = log(S_current)
+    f1(phi) = exp(C1(phi)+D1(phi)*V_current + im*phi*x)
+    f2(phi) = exp(C2(phi)+D2(phi)*V_current + im*phi*x)
+
+    d_phi = max_freq / N_freqs
+
+    #avoid singalirity
+
+    phi_range = LinRange(d_phi,max_freq+d_phi,N_freqs)
+
+    f1_arr = f1.(phi_range)
+    f2_arr = f2.(phi_range)
+
+    return f1_arr, f2_arr
+
+end
 
 #dirty metaprogramming trick if we want to export everything!
 
@@ -86,7 +134,6 @@ end
 #eval(Expr(:export, exported_names...))
 
 #module end 
-
 
 end
 
