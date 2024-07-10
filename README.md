@@ -273,9 +273,9 @@ $\Pi_2 = 0.5 +\frac{1}{\pi} \int_0^{\infty} \Re(f_{\tau}(u-i) exp{(-i u \log{K})
 
 These integral can be, in theory, be evaulated numerically by using quad integrators or similar. However, if we aim to evalute a _range_ of strike prices $K$, we are much better of thinkinf of this as an Fourier transform problem, where then we can employ FFT to evaluate a range of strike prices. 
 
-A number of [ways](https://engineering.nyu.edu/sites/default/files/2018-08/CarrMadan2_0.pdf) had been developed to use FFT for this problem. The main problem is the fact that there is a singularity at $u = 0$, which must be dealt with numerically, either by introducing a damping factor or by manually overwriting that frequency. 
+A number of [ways](https://engineering.nyu.edu/sites/default/files/2018-08/CarrMadan2_0.pdf) had been developed to use FFT for this problem (which has a considerably better scaling!). The main problem is the fact that there is a singularity at $u = 0$, which must be dealt with numerically, either by introducing a damping factor or by manually overwriting that frequency. 
 
-The method we used is known as the Carr-Madan method. This involves introducing a damping factor $1<\alpha<2$ and its exponental into the FT which removes the singularity as zero. Further rescalings are needed to account for the numerical nature of FFT. A good overview of the analytical side - i.e. how the characteristic function can be used to approximate the option price -is provided at this [link](https://gregorygundersen.com/blog/2023/01/26/carr-madan/) and [the paper by Madan and Bakshi](https://www.sciencedirect.com/science/article/pii/S0304405X99000501).
+The method we used is known as the Carr-Madan method. This involves introducing a damping factor $1<\alpha<2$ and its exponental into the FT which removes the singularity as zero. Further rescalings are needed to account for the numerical nature of FFT. A good overview of the analytical side - i.e. how the characteristic function can be used to approximate the option price -is provided at this [link](https://gregorygundersen.com/blog/2023/01/26/carr-madan/) and [the paper by Madan and Bakshi](https://www.sciencedirect.com/science/article/pii/S0304405X99000501). The way we implement this can be found in the 'heston_model.jl' file.
 
 
 
