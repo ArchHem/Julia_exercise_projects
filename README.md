@@ -275,6 +275,8 @@ These integral can be, in theory, be evaulated numerically by using quad integra
 
 A number of [ways](https://engineering.nyu.edu/sites/default/files/2018-08/CarrMadan2_0.pdf) had been developed to use FFT for this problem. The main problem is the fact that there is a singularity at $u = 0$, which must be dealt with numerically, either by introducing a damping factor or by manually overwriting that frequency. 
 
+The method we used is known as the Carr-Madan method. This involves introducing a damping factor $1<\alpha<2$ and its exponental into the FT which removes the singularity as zero. Further rescalings are needed to account for the numerical nature of FFT. A good overview of the analytical side - i.e. how the characteristic function can be used to approximate the option price -is provided at this [link](https://gregorygundersen.com/blog/2023/01/26/carr-madan/) and [the paper by Madan and Bakshi](https://www.sciencedirect.com/science/article/pii/S0304405X99000501).
+
 
 
 
