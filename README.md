@@ -271,6 +271,10 @@ and as:
 
 $\Pi_2 = 0.5 +\frac{1}{\pi} \int_0^{\infty} \Re(f_{\tau}(u-i) exp{(-i u \log{K})} / (i u f_{\tau}(-i))) du$
 
+These integral can be, in theory, be evaulated numerically by using quad integrators or similar. However, if we aim to evalute a _range_ of strike prices $K$, we are much better of thinkinf of this as an Fourier transform problem, where then we can employ FFT to evaluate a range of strike prices. 
+
+A number of [ways](https://engineering.nyu.edu/sites/default/files/2018-08/CarrMadan2_0.pdf) had been developed to use FFT for this problem. The main problem is the fact that there is a singularity at $u = 0$, which must be dealt with numerically, either by introducing a damping factor or by manually overwriting that frequency. 
+
 
 
 
