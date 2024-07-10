@@ -1,7 +1,7 @@
 module Heston_support
 using ProgressBars, Optim, SpecialFunctions, Roots, FFTW
 
-export HestonModel, evolve_heston_batch, evolve_heston_full, eval_call_option
+export HestonModel, evolve_heston_batch, evolve_heston_full, heston_characeristic, get_call_vals
 
 struct HestonModel
     dt::Float64
@@ -80,53 +80,59 @@ function evolve_heston_full(system::HestonModel,S0::Float64,V0::Float64,NBatches
     return S, V
 end
 
-function eval_call_option(S_current::Float64,V_current::Float64,K::Float64, model::HestonModel, lambda::Float64,
-    max_freq::Float64 = 1000.0,N_freqs::Int64 = 2^10)
-    #lambda: coefficient of the linear function of the market cost for the volatility
+function heston_characeristic(phi,S,V,tau,model::HestonModel)
 
-    rho = model.p
-    r = model.r
+    x = log(S)
     sigma = model.epsilon
-    k = model.k
-    theta = model.theta
-    T = model.dt*model.NTimeSteps
+    mu = model.mu
+    a = model.k
+    b = model.theta
+    rho = model.p
 
-    u1 = 0.5
-    u2 = -0.5
+    gamma = sqrt(sigma^2 * (phi^2 - im*phi) + (a-im*sigma*phi*rho)^2)
 
-    a = k*theta
-    b1 = k + lambda - rho*sigma
-    b2 = k + lambda
+    sec_term = (im*phi+phi^2)*V / (gamma*coth(gamma*tau/2) + (a-im*rho*sigma*phi))
+    exp_in = im*phi*x - sec_term + a*b*(a-im*rho*sigma*phi)*tau / sigma^2 + im*phi*mu*tau
 
-    d1(phi) = sqrt((im*rho*sigma*phi-b1)^2 -sigma^2 * (2*u1*im*phi  - phi^2))
-    d2(phi) = sqrt((im*rho*sigma*phi-b2)^2 -sigma^2 * (2*u2*im*phi  - phi^2))
+    power = 2*a*b/sigma^2
+    denom = cosh(gamma*tau/2) + (a-im*rho*sigma*phi) / gamma * sinh(gamma*tau / 2)
 
-    g1(phi) = (b1-rho*sigma*im*phi+d1(phi)) / (b1-rho*sigma*im*phi - d1(phi))
-    g2(phi) = (b2-rho*sigma*im*phi+d2(phi)) / (b2-rho*sigma*im*phi - d2(phi))
+    res = exp(exp_in)/denom^power
 
-    D1(phi) = (b1-rho*sigma*im*phi + d1(phi)) / sigma^2 * (1-exp(d1(phi)*T))/(1-g1(phi)*exp(d1(phi)*T))
-    D2(phi) = (b2-rho*sigma*im*phi + d2(phi)) / sigma^2 * (1-exp(d2(phi)*T))/(1-g2(phi)*exp(d2(phi)*T))
-
-    C1(phi) = r*im*phi*T + a / sigma^2 * ((b1-rho*im*sigma*phi + d1(phi))*T -2 * log((1-g1(phi)*exp(d1(phi)*T))/(1-g1(phi))))
-    C2(phi) = r*im*phi*T + a / sigma^2 * ((b2-rho*im*sigma*phi + d2(phi))*T -2 * log((1-g2(phi)*exp(d2(phi)*T))/(1-g2(phi))))
-
-    x = log(S_current)
-    f1(phi) = exp(C1(phi)+D1(phi)*V_current + im*phi*x)
-    f2(phi) = exp(C2(phi)+D2(phi)*V_current + im*phi*x)
-
-    d_phi = max_freq / N_freqs
-
-    #avoid singalirity
-
-    phi_range = LinRange(d_phi,max_freq+d_phi,N_freqs)
-
-    f1_arr = f1.(phi_range)
-    f2_arr = f2.(phi_range)
-
-    return f1_arr, f2_arr
+    return res
 
 end
 
+function get_call_vals(S0,V0,tau,K,alpha,model::HestonModel; N::Int64 = 10,du::Float64)
+
+    true_N = 2^N
+    phifreqs = LinRange(0,true_N*du,true_N)
+    dlogK = 2 * pi / (true_N*du)
+
+    logKs = log(K) .+ LinRange(0,true_N*dlogK,true_N)
+
+    discount = exp(-model.r*tau)
+
+    damped_char_function = heston_characeristic.(phifreqs .-((alpha+1)*im),S0,V0,tau,Ref(model))
+
+    denom = @. ((alpha + 1*im * phifreqs) * (alpha + 1 + 1*im * phifreqs))
+
+    quant = @. damped_char_function / denom
+
+    omega = du .* ones(true_N)
+
+    omega[1] = du/2
+
+    x_vals = @. exp(-1*im * log(K) * phifreqs) * discount * quant * omega
+    y_vals = fft(x_vals)
+
+    corrector = exp.(-alpha * logKs) / pi
+
+    call_vals = @. corrector*real(y_vals)
+
+    return logKs, call_vals
+
+end
 #dirty metaprogramming trick if we want to export everything!
 
 #exported_names = names(@__MODULE__, all=true) .|> Symbol
