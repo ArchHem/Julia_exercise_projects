@@ -257,49 +257,7 @@ We assume that the market price of the volatility is simply a linear function s.
 
 In terms of our new variables, the PDE reduces to:
 
-$\frac{\partial U}{\partial t}+\frac{1}{2} v \frac{\partial^2 U}{\partial x^2}+\left(r-\frac{1}{2} v\right) \frac{\partial U}{\partial x}+\rho \sigma v \frac{\partial^2 U}{\partial v \partial x}
-\frac{1}{2} \sigma^2 v \frac{\partial^2 U}{\partial v^2}-r U+[\kappa(\theta-v)-\lambda v] \frac{\partial U}{\partial v}=0$
 
-We then _guess_ a solution for call options of the form:
-
-$C = e^{x_t} P_1(x, v, \tau)-e^{-r \tau} K P_2(x, v, \tau)$
-
-Plugging this into the above PDE yields us 2x PDE's of the form: 
-
-
-$-\frac{\partial P_j}{\partial \tau}+\rho \sigma v \frac{\partial^2 P_j}{\partial x \partial v}+\frac{1}{2} v \frac{\partial^2 P_j}{\partial x^2}+\frac{1}{2} v \sigma^2 \frac{\partial^2 P_j}{\partial v^2} \\
-+\left(r+u_j v\right) \frac{\partial P_j}{\partial x}+\left(a-b_j v\right) \frac{\partial P_j}{\partial v}=0$
-
-Here, we have that $u_1 = 0.5$, $u_2 = -0.5$, $a = \kappa \theta$, $b_1 = \kappa + \lambda - \rho \sigma$ and $b_2 = \kappa + \lambda$
-
-Heston postulates that the characteristic function of the PDF of the log-stock $x$ price has the functional form:
-
-$f_j(\phi ; x, v)=\exp \left(C_j(\tau, \phi)+D_j(\tau, \phi) v_0+i \phi x\right)$
-
-where $\phi$ is the transformed/fourier variable. It can be shown that $f_j$ follows the PDE's that define the above coefficents $P_j$ (By the Feynman-Kac theorem).
-
-I.e., in the transformed domain, we get (riccati form) ODEs of the form:
-
-
-$\frac{\partial D_j}{\partial \tau} =\rho \sigma i \phi D_j-\frac{1}{2} \phi^2+\frac{1}{2} \sigma^2 D_j^2+u_j i \phi-b_j D_j $
-
-and 
-
-$\frac{\partial C_j}{\partial \tau} =r i \phi+a D_j$ 
-
-i.e. if we solve for $D_j$, the solution for $C_j$ reduces to a simple integration. Due to the boundary conditions on these terms (namely, if the time to expiry is zero, these terms all must go to zero by definition), we can obtain analytic solutions of the form:
-
-$D_j=\frac{b_j-\rho \sigma i \phi+d_j}{\sigma^2}\left(\frac{1-e^{d_j \tau}}{1-g_j e^{d_j \tau}}\right) .$
-where
-$d_j=\sqrt{\left(\rho \sigma i \phi-b_j\right)^2-\sigma^2\left(2 u_j i \phi-\phi^2\right)}$
-and 
-$g_j=\frac{b_j-\rho \sigma i \phi+d_j}{b_j-\rho \sigma i \phi-d_j}$
-
-Thus, the solution for $C_j$ becomes, under the same BC's:
-
-$C_j=r i \phi \tau+\frac{a}{\sigma^2}\left[\left(b_j-\rho \sigma i \phi+d_j\right) \tau-2 \ln \left(\frac{1-g_j e^{d_j \tau}}{1-g_j}\right)\right]$
-
-Using this, we can construct an analytical solution for the charactestic function of $x$ in $\phi$ transformed space. However, to produce actual numerical results, we need to invert (i.e. perfrom an inverse Fourier Transform) to the original domain. 
 
 
 
