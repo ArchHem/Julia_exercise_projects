@@ -4,21 +4,67 @@ using ProgressBars, Plots, Statistics, Statistics, Dates, Optim, LaTeXStrings, S
 include("./heston_model.jl")
 using .Heston_support
 
-local_model = HestonModel(0.01,100,1000.0,0.2^2,0.02,0.02,0.6,3.0,-0.6)
+T = 2.0
 S0 = 100.0
-logKs, Cs = get_call_vals(S0,0.2^2,2.,5.0,1.5,local_model,N = 12,du = 0.1)
+V0 = 0.2^2
+K0 = 30.0
+theta = 0.2^2
+eps = 0.3
+alpha = 1.5
+k = 3.0
 
-log_moniness = log(S0).-logKs
+#implicit condition of 2k*theta > eps^2
 
-plot(log_moniness, Cs, color = "green", 
-label = L"$C_{\tau = 1.0}(\alpha = 1.5, \rho = -0.6)$ - FFT", xlabel = L"$M = \log{(S_0 / K)}$", dpi = 1200,
+cond = 2*k*theta - eps^2
+
+local_model_1 = HestonModel(0.001,2000,100000,theta,0.02,0.02,eps,k,-0.6)
+logKs1, Cs1 = get_call_vals(S0,V0,T,K0,alpha,local_model_1,N = 12,du = 0.1)
+
+log_moniness1 = log(S0).-logKs1
+
+plotinst = plot(log_moniness1, Cs1, color = "green", 
+label = L"$C_{\tau = 2.0}(\alpha = 1.5, \rho = -0.6)$ - FFT", xlabel = L"$M = \log{(S_0 / K)}$", dpi = 1200,
 xlim = [-1,1], ylabel = L"$C_{\tau}(M)$")
 
-local_model = HestonModel(0.01,100,1000.0,0.2^2,0.02,0.02,0.6,3.0,0.6)
-logKs, Cs = get_call_vals(S0,0.2^2,2.,5.0,1.5,local_model,N = 12,du = 0.1)
+local_model_2 = HestonModel(0.001,2000,100000,theta,0.02,0.02,eps,k,0.6)
+logKs2, Cs2 = get_call_vals(S0,V0,T,K0,alpha,local_model_2,N = 12,du = 0.1)
 
-log_moniness = log(S0).-logKs
+log_moniness2 = log(S0).-logKs2
 
-plot!(log_moniness, Cs, color = "red", 
-label = L"$C_{\tau = 1.0}(\alpha = 1.5, \rho = 0.6)$ - FFT", xlabel = L"$M = \log{(S_0 / K)}$", dpi = 1200,
+plot!(log_moniness2, Cs2, color = "red", 
+label = L"$C_{\tau = 2.0}(\alpha = 1.5, \rho = 0.6)$ - FFT", xlabel = L"$M = \log{(S_0 / K)}$", dpi = 1200,
 xlim = [-1,1], ylabel = L"$C_{\tau}(M)$")
+
+#replicate same scenario via MC method
+
+valid_indeces = abs.(log_moniness1) .< 1
+valid_moniness = log_moniness1[valid_indeces]
+logputs_valid = logKs1[valid_indeces]
+k_valid = exp.(logputs_valid)
+
+#generate mc price
+
+
+
+function get_mc_call(model::HestonModel,K,S0,V0)
+    prices, volats = evolve_heston_batch(model,S0,V0)
+    discount = exp(-model.r*model.dt*model.NTimeSteps)
+    opt_price = discount*mean(ReLu.(prices.-K))
+    return opt_price
+end
+
+function get_mc_calls(model::HestonModel,K,S0,V0)
+    outp = ones(length(K))
+    Threads.@threads for i in ProgressBar(eachindex(K))
+        outp[i] = get_mc_call(model,K[i],S0,V0)
+    end
+    return outp
+end
+
+mc_prices_1 = get_mc_calls(local_model_1,k_valid,S0,V0)
+mc_prices_2 = get_mc_calls(local_model_2,k_valid,S0,V0)
+
+
+scatter!(valid_moniness,mc_prices_1,mc = "orange", label = L"$C_{\tau} ,\rho = -0.6$ - MC", markersize = 1.5,  markerstrokewidth = 0.0)
+
+scatter!(valid_moniness,mc_prices_2,mc = "blue", label = L"$C_{\tau} ,\rho = 0.6$ - MC", markersize = 1.5,  markerstrokewidth = 0.0)

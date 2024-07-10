@@ -1,7 +1,7 @@
 module Heston_support
 using ProgressBars, Optim, SpecialFunctions, Roots, FFTW
 
-export HestonModel, evolve_heston_batch, evolve_heston_full, heston_characeristic, get_call_vals
+export HestonModel, evolve_heston_batch, evolve_heston_full, heston_characeristic, get_call_vals, ReLu
 
 struct HestonModel
     dt::Float64
@@ -89,7 +89,7 @@ function heston_characeristic(phi,S,V,tau,model::HestonModel)
     b = model.theta
     rho = model.p
 
-    gamma = sqrt(sigma^2 * (phi^2 - im*phi) + (a-im*sigma*phi*rho)^2)
+    gamma = sqrt(sigma^2 * (phi^2 + im*phi) + (a-im*sigma*phi*rho)^2)
 
     sec_term = (im*phi+phi^2)*V / (gamma*coth(gamma*tau/2) + (a-im*rho*sigma*phi))
     exp_in = im*phi*x - sec_term + a*b*(a-im*rho*sigma*phi)*tau / sigma^2 + im*phi*mu*tau
