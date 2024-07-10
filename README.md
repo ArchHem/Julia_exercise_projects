@@ -277,33 +277,24 @@ A number of [ways](https://engineering.nyu.edu/sites/default/files/2018-08/CarrM
 
 The method we used is known as the Carr-Madan method. This involves introducing a damping factor $1<\alpha<2$ and its exponental into the FT which removes the singularity as zero. Further rescalings are needed to account for the numerical nature of FFT. A good overview of the analytical side - i.e. how the characteristic function can be used to approximate the option price -is provided at this [link](https://gregorygundersen.com/blog/2023/01/26/carr-madan/) and [the paper by Madan and Bakshi](https://www.sciencedirect.com/science/article/pii/S0304405X99000501). The way we implement this can be found in the 'heston_model.jl' file.
 
+All that remains now is to check whether the method of the characteristic function's predictions for the option prices (call, in this case). 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+The FFT method offers a number of improvements over the MC method of option pricing: most notably, it is easier to 'invert', that is, determine a (single) unknown Heston parameter from the option price (assuming it was priced according to the said model).
 
 ### Parameter estimation in the Heston model
 
+Estimating the parameters of the Heston model from historic asset prices is much more complicated than that of the Black-Scholes model and is seldom done. 
 
-### GARCH models
+TBA: Parameter estimation (method of moments?)
 
+
+### Performance improvements for the future
+
+There is much to be improved in the performance of the code. Currently, the code leverages only the CPU and while it uses some parallelism (such as batching the various MC calls) and while it mostly leverages SIMD, it does not make use of some other speedups (i.e. using `@fastmath`, `@inbounds`, `@views` (where applicable) or even being more careful with abusing the dot operator). Minor speedups could be caught by stronger type declarations and/or more hints to the complier. 
+
+In case of rewriting this mini-project, two major fields are avaible for improvement. The first one using the GPU for the Monte-Carlo integration and potentially for the FFT step. This could be done relatively painlessly with high-level `CUDA.jl` usage as pretty much all used functions have a GPU implementation. On this note, this would also require us to switch to `Float32` for all parts of the code, which would also lead to improvements. 
+
+The second one relates to the Heston characteristic function. During calling to determine option prices, we can see that it is actually only evaluated for numbers whose real part is _zero_. That means that our current implemenation wastes the complex datatype and effectively wastes half of the memory! This could be fixed by declaring a custom function that evalutes the function for imaginary numbers only, either by discarding the real part under the hood, or by just simply calculating it analytically and (re)-defining it. 
 
 
 ## Quasi-general raycasting in General Relatvity
