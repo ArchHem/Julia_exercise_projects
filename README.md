@@ -261,7 +261,7 @@ For more details on how this solution is guessed from the log-PDE's form, see [t
 
 Plugging this guess back into the (transformed) PDE, one gets that its exact functional form can be represented as:
 
-\frac{\exp \left\{i \phi x-\frac{\left(i \phi+\phi^2\right) v}{\gamma \operatorname{coth}\left(\frac{\gamma(\tau)}{2}\right)+(a-i \sigma \rho \phi)}+\frac{a b(a-i \sigma \rho \phi)(\tau)}{\sigma^2}+i \phi \mu(\tau)\right\}}{\left(\cosh \left(\frac{\gamma(\tau)}{2}\right)+\frac{a-i \sigma \rho \phi}{\gamma} \sinh \left(\frac{\gamma(\tau)}{2}\right)\right)^{\frac{2 a b}{\sigma^2}}} 
+\frac{\exp \left\{i \phi x-\frac{\left(i \phi+\phi^2\right) v}{\gamma \coth \left(\frac{\gamma(\tau)}{2}\right)+(a-i \sigma \rho \phi)}+\frac{a b(a-i \sigma \rho \phi)(\tau)}{\sigma^2}+i \phi \mu(\tau)\right\}}{\left(\cosh \left(\frac{\gamma(\tau)}{2}\right)+\frac{a-i \sigma \rho \phi}{\gamma} \sinh \left(\frac{\gamma(\tau)}{2}\right)\right)^{\frac{2 a b}{\sigma^2}}} 
 
 
 
