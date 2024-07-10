@@ -265,11 +265,11 @@ $C = \Pi_1 S + exp{(-r\tau)}\Pi_2 K$
 
 where we can express $\Pi_j$ as integrals of the characteristic function st.:
 
-$\Pi_1 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(u) exp{(-i u \log{K})} / (i*u)) du$
+$\Pi_1 = 0.5 +\frac{1}{\pi} \int_0^{\infty} \Re(f_{\tau}(u) exp{(-i u \log{K})} / (i*u)) du$
 
 and as: 
 
-$\Pi_2 = 0.5 + \int_0^{\infty} \Re(f_{\tau}(i-u) exp{(-i u \log{K})} / (i u f_{\tau}(-i))) du$
+$\Pi_2 = 0.5 +\frac{1}{\pi} \int_0^{\infty} \Re(f_{\tau}(u-i) exp{(-i u \log{K})} / (i u f_{\tau}(-i))) du$
 
 
 
