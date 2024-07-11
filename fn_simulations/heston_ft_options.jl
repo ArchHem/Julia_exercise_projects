@@ -45,20 +45,13 @@ k_valid = exp.(logputs_valid)
 #generate mc price
 
 
+function get_mc_calls(model::HestonModel,K,S0,V0;NBatches = 8)
+    prices, volats = evolve_heston_full(model,S0,V0,NBatches)
 
-function get_mc_call(model::HestonModel,K,S0,V0)
-    prices, volats = evolve_heston_batch(model,S0,V0)
     discount = exp(-model.r*model.dt*model.NTimeSteps)
-    opt_price = discount*mean(ReLu.(prices.-K))
-    return opt_price
-end
-
-function get_mc_calls(model::HestonModel,K,S0,V0)
-    outp = ones(length(K))
-    Threads.@threads for i in ProgressBar(eachindex(K))
-        outp[i] = get_mc_call(model,K[i],S0,V0)
-    end
-    return outp
+    payoffs = vec(discount*mean(ReLu.(prices .- K'), dims = 1))
+    
+    return payoffs
 end
 
 mc_prices_1 = get_mc_calls(local_model_1,k_valid,S0,V0)
