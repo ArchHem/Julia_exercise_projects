@@ -47,7 +47,7 @@ k_valid = exp.(logputs_valid)
 
 function get_mc_calls(model::HestonModel,K,S0,V0;NBatches = 8)
     prices, volats = evolve_heston_full(model,S0,V0,NBatches)
-
+    #maybe time along which axis the bellow is faster? Assume mean() is better operating columnwise!
     discount = exp(-model.r*model.dt*model.NTimeSteps)
     payoffs = vec(discount*mean(ReLu.(prices .- K'), dims = 1))
     
