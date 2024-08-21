@@ -289,7 +289,7 @@ The FFT method offers a number of improvements over the MC method of option pric
 
 Estimating the parameters of the Heston model from historic asset prices is much more complicated than that of the Black-Scholes model and is generally much less accurate, as the volatility $V(t)$ is not directly observable in the market.
 
-The method I implemented is described in a ![paper](https://www.valpo.edu/mathematics-statistics/files/2015/07/Estimating-Option-Prices-with-Heston’s-Stochastic-Volatility-Model.pdf) by Robin Dunn at el. To estimate the parameters, we discretize the SDE-s of the asset price and of the volatility, via:
+The method I implemented is described in a [paper](https://www.valpo.edu/mathematics-statistics/files/2015/07/Estimating-Option-Prices-with-Heston’s-Stochastic-Volatility-Model.pdf) by Robin Dunn at el. To estimate the parameters, we discretize the SDE-s of the asset price and of the volatility, via:
 
 $S_{t+1}=S_t+r S_t+\sqrt{V_t} S_t Z_s$
 
@@ -305,11 +305,14 @@ By introducing a new variable, $S_{t+1}/S_{t} = Q_{t+1}$, we may instead write, 
 
 
 $Q_{t+1}=1+r+\sqrt{V_t}(\rho Z_1+\sqrt{1-\rho^2} Z_2)$
+
+and
+
 $V_{t+1}=V_t+k(\theta-V_t)+\sigma \sqrt{V_t} Z_1$
 
 This is a fairly interesting result. Under the discretization estimate, $V_{t+1}$ is normally distributed with mean $V_t+k(\theta-V_t)$ and variance $\sigma^2 V_t$; similarly, Q_{t+1} is normally distributed with mean $1+r$ and variance $V_{t}$. However, only $Q_t$ can be directly observed in the marked - $V_t$ must be constructed "artificially", i.e. $Q(t)$ is a _heteroscedastic_ process.
 
-There are a number of ways of estimating V_{t}. The paper opts for simply taking the sample variance of $Q_{t+1}$ up to index $t$ - other, more accurate models (rolling-time-window variance calculations, GARCH models, etc) are also avaible for estimating the $V_t$ vector but also need more free parameters. Currently, we only implemented the approach laid out in the original paper, and had thus obtained a historic estimate for $V_t$. 
+There are a number of ways of estimating $V_{t}$. The paper opts for simply taking the sample variance of $Q_{t+1}$ up to index $t$ - other, more accurate models (rolling-time-window variance calculations, GARCH models, etc) are also avaible for estimating the $V_t$ vector but also need more free parameters. Currently, we only implemented the approach laid out in the original paper, and had thus obtained a historic estimate for $V_t$. 
 
 The actual parameter estimation once again occurs via minimizing the negative log-likelyhood. The join probability distribution of the variables $V$ and $Q$ is a bivariate, correlated normal distr. (as both are normally distributed) and thus determing the log-likelyhood analytically is actually fairly trivial. 
 
