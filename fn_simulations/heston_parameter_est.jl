@@ -50,11 +50,11 @@ end
 
 using .HesParameterEst, CSV, DataFrames, Optim, Plots
 
-S_data = CSV.read("fn_simulations/fn_data/goog_closing_prices_2008_2018.csv",delim = ",", DataFrame)
-S0 = collect(S_data[!,"Close"])
+const S_data = CSV.read("fn_simulations/fn_data/goog_closing_prices_2008_2018.csv",delim = ",", DataFrame)
+const S0 = collect(S_data[!,"Close"])
 
-x0 = [0.06/252,0.02,0.04/252,0.1/sqrt(252),-0.4]
-opt, Q, V = HestonEstimator(S0,x0)
+const x0 = [0.06/252,0.02,0.04/252,0.1/sqrt(252),-0.4]
+const opt, Q, V = HestonEstimator(S0,x0)
 parameters = Optim.minimizer(opt)
 
 #we might want to upscale our parameters back to the anual basis: can be done via dimensional analysis and by multipling w number of trading days
