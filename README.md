@@ -287,9 +287,52 @@ The FFT method offers a number of improvements over the MC method of option pric
 
 ### Parameter estimation in the Heston model
 
-Estimating the parameters of the Heston model from historic asset prices is much more complicated than that of the Black-Scholes model and is seldom done. 
+Estimating the parameters of the Heston model from historic asset prices is much more complicated than that of the Black-Scholes model and is generally much less accurate, as the volatility $V(t)$ is not directly observable in the market.
 
-TBA: Parameter estimation (method of moments?)
+The method I implemented is described in a ![paper](https://www.valpo.edu/mathematics-statistics/files/2015/07/Estimating-Option-Prices-with-Heston’s-Stochastic-Volatility-Model.pdf) by Robin Dunn at el. To estimate the parameters, we discretize the SDE-s of the asset price and of the volatility, via:
+
+$S_{t+1}=S_t+r S_t+\sqrt{V_t} S_t Z_s$
+
+and 
+
+$V_{t+1}=V_t+k\left(\theta-V_t\right)+\sigma \sqrt{V_t} Z_v$
+
+(the paper assumes that $\mu = r$ - we do not enforce this condition in later stages)
+
+Here, we implictly set $dt =1$, i.e. we assume that the separation of our data is uniform: all fitted variables will be calculated in the chose temporal unit.
+
+By introducing a new variable, $S_{t+1}/S_{t} = Q_{t+1}$, we may instead write, taking the correlation betwen the normal noises $Z_v$ and $Z_s$ into account:
+
+
+$Q_{t+1}=1+r+\sqrt{V_t}(\rho Z_1+\sqrt{1-\rho^2} Z_2)$
+$V_{t+1}=V_t+k(\theta-V_t)+\sigma \sqrt{V_t} Z_1$
+
+This is a fairly interesting result. Under the discretization estimate, $V_{t+1}$ is normally distributed with mean $V_t+k(\theta-V_t)$ and variance $\sigma^2 V_t$; similarly, Q_{t+1} is normally distributed with mean $1+r$ and variance $V_{t}$. However, only $Q_t$ can be directly observed in the marked - $V_t$ must be constructed "artificially", i.e. $Q(t)$ is a _heteroscedastic_ process.
+
+There are a number of ways of estimating V_{t}. The paper opts for simply taking the sample variance of $Q_{t+1}$ up to index $t$ - other, more accurate models (rolling-time-window variance calculations, GARCH models, etc) are also avaible for estimating the $V_t$ vector but also need more free parameters. Currently, we only implemented the approach laid out in the original paper, and had thus obtained a historic estimate for $V_t$. 
+
+The actual parameter estimation once again occurs via minimizing the negative log-likelyhood. The join probability distribution of the variables $V$ and $Q$ is a bivariate, correlated normal distr. (as both are normally distributed) and thus determing the log-likelyhood analytically is actually fairly trivial. 
+
+The actual parameter fit is performed using `Optim.jl` and the dual number automatic differentation provided by `ForwardDiff.jl`: the Hessian and the resulting errors from it is calculated similarly, using a class of higher-order duals. We had tried to fit our parameters to a ten-year long historic data of `GOOG` data but found poor convergence: likely because the underlying model estimations are incorrect (constant drift rate is most likely untrue). For shorter time periods, we found much faster and agreeable convergence.
+
+![Q_goog](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/GOOG_historic_H_Q.png)
+
+![V_GOOG](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/GOOG_historic_H_volat.png)
+
+### The Volatility Smile
+
+One of the biggest achievements of the Heston model is the ability to reproduce the often observed volatity smile, that is, (call) options far-out/in money have much larger implied volatities than those near it (as discussed before, the BS model implies constant volatities of ALL options of the same expiry, regardless of strike price). 
+
+By simulating a number of prices (or calling on the implemented FFT-based method) we can generate the 'fair' option price, $H_{S,T,K,...}$ according to the Heston model. For the BS model, there exists an analytical formulae (see above) that expresses the Black-Schole predicted option price, $B_{S,T,K,\sigma}$. By treating $H-B(\sigma)$ as a rootfinding problem, we may find the volatility 'implied' by the Heston model, and plot it a as a function of the strike price $K$.
+
+For the rootfinding, we used `Roots.jl`: while the method used is _very_ sensitive to initial guesses of the root, we only need to supply it once for a range of strike prices, as subsequent calls will use the previously detemrined root as a starting guess. This still leads space for some improvements, though, but I oculd not find any good intial estimators in my brief search. 
+
+![rho_02](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_volat_curve_rho_p02.png)
+![rho_00](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_volat_curve_rho_00.png)
+![rho_m02](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_volat_curve_rho_m02.png)
+![rho_m07](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_volat_curve_rho_m07.png)
+
+All the previous plots were produced with $dt = 0.001, N_t = 500, \theat = 0.2^2, \mu = 0.05, r = 0.02, \epsilon = 0.6, k = 3.0$ while varying $\rho$.
 
 
 ### Performance improvements for the future
