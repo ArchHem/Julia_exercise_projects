@@ -335,8 +335,9 @@ For the rootfinding, we used `Roots.jl`: while the method used is _very_ sensiti
 ![rho_m02](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_volat_curve_rho_m02.png)
 ![rho_m07](https://github.com/ArchHem/Julia_exercise_projects/blob/main/fn_simulations/fn_plots/heston_volat_curve_rho_m07.png)
 
-All the previous plots were produced with $dt = 0.001, N_t = 500, \theat = 0.2^2, \mu = 0.05, r = 0.02, \epsilon = 0.6, k = 3.0$ while varying $\rho$.
+All the previous plots were produced with $dt = 0.001, N_t = 500, \theta = 0.2^2, \mu = 0.05, r = 0.02, \epsilon = 0.6, k = 3.0$ while varying $\rho$.
 
+We can also see the characteristic 'skew' of this smile (i.e. its non-symmetry).
 
 ### Performance improvements for the future
 
