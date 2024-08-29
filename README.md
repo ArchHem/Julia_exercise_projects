@@ -256,5 +256,5 @@ Example renders:
 
 -main `struct` capable of constructing any feed-forward network architecture
 
--Potential future improvements include implementing other gradient-descent methods such as ADAM, and type declaration in main `struct`, or symbolic differention using `Symbolics.jl`/forwardiff, to achieve higher performance.
+-Potential future improvements include implementing other gradient-descent methods such as ADAM, and type declaration in main `struct`, or symbolic differention using `Symbolics.jl`/forwardiff, to achieve higher performance. (implementation already uses dual-like reversediff - unlikely to gain much perf.)
 
